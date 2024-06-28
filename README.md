@@ -14,8 +14,11 @@ conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvi
 ```
 
 # modules
+
+```
 pip install pandas
 pip install zensvi
 #pip install matplotlib
 #pip install scikit-learn
 pip install -U "ray[data,train,tune,serve]"
+```

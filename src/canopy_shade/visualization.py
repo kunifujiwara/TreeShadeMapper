@@ -1,40 +1,30 @@
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 from IPython.display import display
 import numpy as np
-from pvlib import clearsky, atmosphere, solarposition
 import matplotlib.pyplot as plt
 
 import contextily as ctx
 import seaborn as sns
 import pandas as pd
 import geopandas as gpd
-from datetime import datetime, timedelta
 import os
 import shutil
 
 import folium
 import branca.colormap as cm
-import matplotlib.cm as mcm
 import io
 import base64
 from PIL import Image
 
-from geojson import Feature, Point, FeatureCollection
+from geojson import Feature, FeatureCollection
 import json
 import matplotlib
 import h3
 
-from image_process import segmentation_dir, resize_dir
-from image_process import get_transmittance, get_transmittance_center_of_modes, get_transmittance_center_of_modes_upper#, get_transmittance_seg, get_transmittance_bin
-from image_process import get_sky_view_factor_from_binary
+from .image_process import get_transmittance_center_of_modes, get_transmittance_center_of_modes_upper#, get_transmittance_seg, get_transmittance_bin
+from .image_process import get_sky_view_factor_from_binary
 
-from solar_data_process import create_solar_time_series 
-from solar_data_process import calc_solar_irradiance_under_tree_map, calc_solar_irradiance_under_tree_validation
-
-import concurrent.futures
-
-from shapely.geometry import Point
 
 def display_sun_trajectory(frame_path, df_sunposi, azimuth_offset=0, mode = "point"):
     img = Image.open(frame_path)
@@ -676,84 +666,6 @@ def mapping_h3_grid_timeseries_normalized(df_map, value_name, resolution = None,
         save_choropleth_svg(df_h3, df_map_filtered, value_name, vmin, vmax, fill_opacity = fill_opacity, cmap = cmap, initial_map = None, save_dir = save_dir, save_name = formatted_date_str)
         save_choropleth_with_basemap_time(df_h3, df_map_filtered, value_name, vmin, vmax, fill_opacity = fill_opacity, cmap = cmap, initial_map = None, save_dir = save_dir, save_name = formatted_date_str)
 
-def calc_transmittance_for_map(base_dir, models=["tcm"], binary_type = "brightness", kernel_size = 40, border = 180):
-
-    #segmentation
-    ori_dir = f"{base_dir}/original"
-    seg_dir = f"{base_dir}/segmented"
-    segmentation_dir(ori_dir, seg_dir)
-    df_path = f"{base_dir}/frames.csv"
-    df_frames = pd.read_csv(df_path)
-
-    for model in models:
-        #prepare directories for results
-        tra_dir = f"{base_dir}/transmittance_{model}"
-        if not os.path.exists(tra_dir):
-            os.makedirs(tra_dir)
-        bin_dir = f"{base_dir}/binary_{model}"
-        if not os.path.exists(bin_dir):
-            os.makedirs(bin_dir)
-
-        svf_list = []
-        for index, row in df_frames.iterrows():
-            ori_path = os.path.join(ori_dir, row["frame_key"]+".jpg")
-            seg_path = os.path.join(seg_dir, row["frame_key"]+"_colored_segmented.png")
-            
-            array_transmittance, array_binary = get_transmittance(ori_path, seg_path, kernel_size, border, binary_type = binary_type, model = model)
-            
-            tra_path = os.path.join(tra_dir, row["frame_key"]+"_tra.npy")
-            bin_path = os.path.join(bin_dir, row["frame_key"]+"_bin.npy")
-            np.save(tra_path, array_transmittance)
-            np.save(bin_path, array_binary)
-
-            # display_image(array_seg_binary, 'gray')
-            # display_image(array_transmittance, 'jet')
-
-            sky_view_factor = get_sky_view_factor_from_binary(array_binary)
-            svf_list.append(sky_view_factor)
-
-        df_frames[f"svf_{model}"] = svf_list
-
-    df_svf_path = f"{base_dir}/frames_svf.csv"
-    df_frames.to_csv(df_svf_path)
-
-#v3 introducing parallel computing
-def calc_transmittance_for_map_v3(base_dir, models=["tcm"], binary_type="brightness", kernel_size=40, max_workers=8):
-    # Segmentation
-    ori_dir = f"{base_dir}/original"
-    seg_dir = f"{base_dir}/segmented"
-    segmentation_dir(ori_dir, seg_dir)
-    df_path = f"{base_dir}/frames.csv"
-    df_frames = pd.read_csv(df_path)
-
-    for model in models:
-        # Prepare directories for results
-        tra_dir = f"{base_dir}/transmittance_{model}"
-        if not os.path.exists(tra_dir):
-            os.makedirs(tra_dir)
-        bin_dir = f"{base_dir}/binary_{model}"
-        if not os.path.exists(bin_dir):
-            os.makedirs(bin_dir)
-
-        svf_list = []
-        frame_data = [(os.path.join(ori_dir, row["frame_key"]+".jpg"), 
-                       os.path.join(seg_dir, row["frame_key"]+"_colored_segmented.png"), 
-                       os.path.join(tra_dir, row["frame_key"]+"_tra.npy"),
-                       os.path.join(bin_dir, row["frame_key"]+"_bin.npy")) 
-                      for index, row in df_frames.iterrows()]
-
-        # Using ThreadPool to parallelize the processing of frames
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            results = executor.map(lambda x: process_frame(*x, kernel_size, binary_type, model), frame_data)
-        
-        for result in results:
-            svf_list.append(result)
-
-        df_frames[f"svf_{model}"] = svf_list
-
-    df_svf_path = f"{base_dir}/frames_svf.csv"
-    df_frames.to_csv(df_svf_path)
-
 def process_frame(ori_path, seg_path, tra_path, bin_path, kernel_size, binary_type, model):
     array_transmittance, array_binary = get_transmittance_center_of_modes(ori_path, seg_path, kernel_size, binary_type=binary_type, model=model)
     np.save(tra_path, array_transmittance)
@@ -786,240 +698,6 @@ def rename_and_copy_files(source_dir, target_dir):
             # If no underscore, just copy with the same name
             shutil.copy(os.path.join(source_dir, filename), os.path.join(target_dir, filename))
             print(f"Copied without renaming: {filename}")
-
-#version 2: using 
-def calc_transmittance_for_map_v2(base_dir, models=["tcm"], binary_type = "brightness", kernel_size = 40):
-
-    #segmentation
-    ori_dir = f"{base_dir}/original"
-    seg_dir = f"{base_dir}/segmented"
-    segmentation_dir(ori_dir, seg_dir)
-    df_path = f"{base_dir}/frames.csv"
-    df_frames = pd.read_csv(df_path)
-
-    for model in models:
-        #prepare directories for results
-        tra_dir = f"{base_dir}/transmittance_{model}"
-        if not os.path.exists(tra_dir):
-            os.makedirs(tra_dir)
-        bin_dir = f"{base_dir}/binary_{model}"
-        if not os.path.exists(bin_dir):
-            os.makedirs(bin_dir)
-
-        svf_list = []
-        for index, row in df_frames.iterrows():
-            ori_path = os.path.join(ori_dir, row["frame_key"]+".jpg")
-            seg_path = os.path.join(seg_dir, row["frame_key"]+"_colored_segmented.png")
-            tra_path = os.path.join(tra_dir, row["frame_key"]+"_tra.npy")
-            bin_path = os.path.join(bin_dir, row["frame_key"]+"_bin.npy")
-            
-            if os.path.exists(tra_path) & os.path.exists(bin_path):
-                array_binary = np.load(bin_path)
-            else:
-                array_transmittance, array_binary = get_transmittance_center_of_modes(ori_path, seg_path, kernel_size, binary_type = binary_type, model = model)
-                np.save(tra_path, array_transmittance)
-                np.save(bin_path, array_binary)
-
-            # display_image(array_seg_binary, 'gray')
-            # display_image(array_transmittance, 'jet')
-
-            sky_view_factor, img_upper_ortho = get_sky_view_factor_from_binary(array_binary)
-            svf_list.append(sky_view_factor)
-
-        df_frames[f"svf_{model}"] = svf_list
-
-    df_svf_path = f"{base_dir}/frames_svf.csv"
-    df_frames.to_csv(df_svf_path)
-
-def calc_transmittance_for_validation(base_dir, models=["tcm"], binary_type = "brightness", focus_type = "upper", kernel_size = 40, type = "q2"):
-
-    #segmentation
-    ori_dir = f"{base_dir}/original"
-    ren_dir = f"{base_dir}/renamed"
-    if not os.path.exists(ren_dir):
-        os.makedirs(ren_dir)
-    rename_and_copy_files(ori_dir, ren_dir)
-    resize_dir(ren_dir, ren_dir, new_size = (2048, 1024))
-
-    seg_dir = f"{base_dir}/segmented"
-    segmentation_dir(ren_dir, seg_dir)
-    # df_path = f"{base_dir}/frames.csv"
-    # df_frames = pd.read_csv(df_path)
-    locations = [pano.replace(".jpg", "") for pano in os.listdir(ren_dir)]
-
-    df_svf_list = []
-    for model in models:
-        #prepare directories for results
-        tra_dir = f"{base_dir}/transmittance_{model}"
-        if not os.path.exists(tra_dir):
-            os.makedirs(tra_dir)
-        bin_dir = f"{base_dir}/binary_{model}"
-        if not os.path.exists(bin_dir):
-            os.makedirs(bin_dir)
-
-        svf_list = []
-        for location in locations:
-            ori_path = os.path.join(ren_dir, location+".jpg")
-            seg_path = os.path.join(seg_dir, location+"_colored_segmented.png")
-            tra_path = os.path.join(tra_dir, location+"_tra.npy")
-            bin_path = os.path.join(bin_dir, location+"_bin.npy")
-            tra_img_path = os.path.join(tra_dir, location+"_tra.jpg")
-            bin_img_path = os.path.join(bin_dir, location+"_bin.jpg")
-            svf_img_path = os.path.join(bin_dir, location+"_svf.jpg")
-            
-            if os.path.exists(tra_path) & os.path.exists(bin_path):
-                array_binary = np.load(bin_path)
-            else:
-                if focus_type == 'entire':
-                    array_transmittance, array_binary = get_transmittance_center_of_modes(ori_path, seg_path, kernel_size, binary_type = binary_type, model = model, type = type)
-                elif focus_type == 'upper':
-                    array_transmittance, array_binary = get_transmittance_center_of_modes_upper(ori_path, seg_path, kernel_size, binary_type = binary_type, model = model, type = type)
-
-                np.save(tra_path, array_transmittance)
-                # magma_array_transmittance = mcm.magma(array_transmittance, bytes=True)
-                # tra_img = Image.fromarray(magma_array_transmittance * 255, 'RGB')
-                # tra_img.save(tra_img_path)
-                plt.imsave(tra_img_path, array_transmittance, cmap='magma')
-                np.save(bin_path, array_binary)
-                # bin_img = Image.fromarray(array_binary * 255, 'L')
-                # bin_img.save(bin_img_path)
-                # display_image(array_binary, 'gray')
-                # display_image(array_transmittance, 'magma')
-                plt.imsave(bin_img_path, array_binary, cmap='gray')
-
-            # display_image(array_seg_binary, 'gray')
-            # display_image(array_transmittance, 'jet')
-
-            sky_view_factor, svf_binary = get_sky_view_factor_from_binary(array_binary)
-            svf_list.append([location, sky_view_factor])
-            plt.imsave(svf_img_path, svf_binary, cmap='gray')
-
-        # df_frames[f"svf_{model}"] = svf_list
-        df_svf = pd.DataFrame(svf_list, columns=['location', f'svf_{model}'])
-        df_svf.set_index('location', inplace=True)
-        df_svf_list.append(df_svf)
-
-    df_svf_list
-    df_svf_all = pd.concat(df_svf_list, axis=1, ignore_index=False)
-    df_svf_path = f"{base_dir}/svf.csv"
-    df_svf_all.to_csv(df_svf_path)
-
-
-def calc_solar_irradiance_for_map(base_dir, time_start, time_end, interval, time_zone, latitude, longitude, azimuth_offset=180, models=["tcm"]):
-
-    df_svf_path = f"{base_dir}/frames_svf.csv"
-    df_frames = pd.read_csv(df_svf_path)
-
-    df_solar_ori = create_solar_time_series(time_start, time_end, time_zone, interval, latitude, longitude)
-
-    df_solar_list = []
-    for index, row in df_frames.iterrows():
-        df_solar = df_solar_ori.copy()
-
-        for model in models:
-            tra_dir = f"{base_dir}/transmittance_{model}"
-            tra_path = os.path.join(tra_dir, row["frame_key"]+"_tra.npy")    
-            array_transmittance = np.load(tra_path)
-            # calc_solar_irradiance_under_tree_v2(df_solar, array_transmittance, row["svf"], azimuth_offset = azimuth_offset)
-            calc_solar_irradiance_under_tree_map(df_solar, array_transmittance, row[f"svf_{model}"], azimuth_offset = azimuth_offset, model = model)
-
-        df_solar["frame_key"] = row["frame_key"]
-        df_solar["lat"] = row["lat"]
-        df_solar["lon"] = row["lon"]
-        df_solar["precision"] = row["precision"]
-        df_solar_list.append(df_solar)
-
-    # Concatenate all dataframes in the list
-    df_solar_all = pd.concat(df_solar_list, axis=0, ignore_index=False)
-
-    df_solar_path = f"{base_dir}/frames_solar.csv"
-    df_solar_all.to_csv(df_solar_path)
-
-    aggregations = {
-        'ghi': 'mean',
-        'dni': 'mean',
-        'dhi': 'mean',
-        'apparent_zenith': 'mean',
-        'zenith': 'mean',
-        'apparent_elevation': 'mean',
-        'elevation': 'mean',
-        'azimuth': 'mean',
-        'equation_of_time': 'mean',
-        ## Add all 'ghi_***' like columns that you want to sum
-        # 'ghi_utc_segbin': 'sum',
-        # 'transmittance_segbin': 'mean',
-        # 'ghi_utc_seg': 'sum',
-        # 'transmittance_seg': 'mean',
-        # 'ghi_utc_bin': 'sum',
-        # 'transmittance_bin': 'mean',
-        ## Average the latitude and longitude
-        'lat': 'mean',
-        'lon': 'mean',
-        'precision': 'mean',
-    }
-
-    for model in models:
-        aggregations[f'ghi_utc_{model}'] = 'sum'
-        aggregations[f'transmittance_{model}'] = 'mean'
-
-    # Group by 'frame_key' and apply the aggregation functions
-    df_solar_accu = df_solar_all.groupby('frame_key').agg(aggregations)
-    for model in models:
-        df_solar_accu[f'ghi_utc_{model}'] = df_solar_accu[f'ghi_utc_{model}'] * 300 / 1000000
-
-
-    df_solar_accu_path = f"{base_dir}/frames_solar_accu.csv"
-    df_solar_accu.to_csv(df_solar_accu_path)
-
-def calc_solar_irradiance_for_validation(base_dir, location_dict, models=["tcm"], consective = 10, radmodel='erbs'):
-
-    df_svf_path = f"{base_dir}/svf.csv"
-    df_svf = pd.read_csv(df_svf_path)
-    df_rad_path = f"{base_dir}/irradiance/irradiance.csv"
-    df_rad = pd.read_csv(df_rad_path)
-
-    for index, row in df_svf.iterrows():
-        # df_solar = df_solar_ori.copy()
-
-        for model in models:
-            tra_dir = f"{base_dir}/transmittance_{model}"
-            tra_path = os.path.join(tra_dir, row["location"]+"_tra.npy")    
-            array_transmittance = np.load(tra_path)
-            calc_solar_irradiance_under_tree_validation(df_rad, row["location"], location_dict[row["location"]]['nearest_roof'], array_transmittance, row[f"svf_{model}"], azimuth_offset = location_dict[row["location"]]['azimuth_offset'], model = model, radmodel = radmodel)
-
-    df_rad["Datetime"] = pd.to_datetime(df_rad["Datetime"])
-    df_rad.set_index('Datetime', inplace=True)
-
-    # Calculate the rolling average over 10 rows for all columns
-    df_rad_rolling_avg = df_rad.rolling(window=consective).mean()
-
-    df_rad_pred = pd.merge(df_rad, df_rad_rolling_avg, on='Datetime', how='outer', suffixes=["", "_ave"])
-
-    return df_rad_pred
-
-def calc_solar_irradiance_for_validation_one_location(base_dir, location, location_dict, models=["tcm"], consective = 10):
-
-    df_svf_path = f"{base_dir}/svf.csv"
-    df_svf = pd.read_csv(df_svf_path)
-    df_rad_path = f"{base_dir}/irradiance/irradiance.csv"
-    df_rad = pd.read_csv(df_rad_path)
-    
-    for model in models:
-        svf = df_svf[df_svf["location"] == location][f"svf_{model}"]
-        tra_dir = f"{base_dir}/transmittance_{model}"
-        tra_path = os.path.join(tra_dir, location+"_tra.npy")    
-        array_transmittance = np.load(tra_path)
-        calc_solar_irradiance_under_tree_validation(df_rad, location, location_dict[location]['nearest_roof'], array_transmittance, svf, azimuth_offset = location_dict[location]['azimuth_offset'], model = model)
-    
-    df_rad["Datetime"] = pd.to_datetime(df_rad["Datetime"])
-    df_rad.set_index('Datetime', inplace=True)
-
-    # Calculate the rolling average over 10 rows for all columns
-    df_rad_rolling_avg = df_rad.rolling(window=consective).mean()
-
-    df_rad_pred = pd.merge(df_rad, df_rad_rolling_avg, on='Datetime', how='outer', suffixes=["", "_ave"])
-
-    return df_rad_pred
 
 def mapping_accu(base_dir, vmin = 0, vmax = 1000, resolution = 15, models = ["tcm"], gps_precision_lim = None):
     df_solar_path = f"{base_dir}/frames_solar_accu.csv"

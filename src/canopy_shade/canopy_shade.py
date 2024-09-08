@@ -4,13 +4,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 
-from image_process import segmentation_dir, resize_dir
-from image_process import get_transmittance_center_of_modes_upper#, get_transmittance_seg, get_transmittance_bin
-from image_process import get_sky_view_factor_from_binary
+from .image_process import segmentation_dir, resize_dir
+from .image_process import get_transmittance_center_of_modes_upper#, get_transmittance_seg, get_transmittance_bin
+from .image_process import get_sky_view_factor_from_binary
 
-from solar_data_process import create_solar_time_series 
-from solar_data_process import calc_solar_irradiance_under_tree_map
-from visualization import mapping_accu, mapping_time_series
+from .solar_data_process import create_solar_time_series 
+from .solar_data_process import calc_solar_irradiance_under_tree_map
+from .visualization import mapping_accu, mapping_time_series
 
 kernel_size = 40
 binary_type = "brightness"

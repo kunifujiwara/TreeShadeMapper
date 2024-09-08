@@ -1,10 +1,8 @@
-import zensvi
 from zensvi.cv import Segmenter
 from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-from scipy.stats import mode
 import os
 import cv2
 

@@ -1,11 +1,11 @@
-.. image:: images/logo.svg
+.. image:: images/logo_2.svg
    :alt: Project Logo
-   :width: 500px
+   :width: 300px
    :align: center
 
-============
-Canopy Shade
-============
+.. ============
+.. Canopy Shade
+.. ============
 
 
 .. image:: https://img.shields.io/pypi/v/canopy_shade.svg

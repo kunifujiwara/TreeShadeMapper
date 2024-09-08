@@ -1,6 +1,6 @@
 .. image:: images/logo.svg
    :alt: Project Logo
-   :width: 200px
+   :width: 500px
    :align: center
 
 ============

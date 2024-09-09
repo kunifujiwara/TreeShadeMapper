@@ -1,4 +1,4 @@
-.. image:: images/logo.jpg
+.. image:: https://github.com/kunifujiwara/canopy-shade/blob/main/images/logo.jpg
    :alt: Project Logo
    :width: 600px
    :align: center

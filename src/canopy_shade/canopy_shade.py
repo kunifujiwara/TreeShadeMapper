@@ -10,7 +10,7 @@ from .image_process import get_sky_view_factor_from_binary
 
 from .solar_data_process import create_solar_time_series 
 from .solar_data_process import calc_solar_irradiance_under_tree_map
-from .visualization import mapping_accu, mapping_time_series
+from .visualization import mapping_accu, mapping_time_series, mapping_svf
 
 kernel_size = 40
 binary_type = "brightness"
@@ -111,7 +111,7 @@ def calc_transmittance(base_dir, models=["tcm"], calc_type = None):
                 # display_image(array_seg_binary, 'gray')
                 # display_image(array_transmittance, 'jet')
 
-                sky_view_factor, img_upper_ortho = get_sky_view_factor_from_binary(array_binary)
+                sky_view_factor, _ = get_sky_view_factor_from_binary(array_binary)
                 svf_list.append(sky_view_factor)
 
             df_frames[f"svf_{model}"] = svf_list
@@ -192,3 +192,4 @@ def get_canopy_shade(base_dir, time_start, time_end, interval, time_zone, latitu
     if calc_type == 'map':
         mapping_accu(base_dir, vmin=vmin, vmax = vmax, models = models, resolution = resolution)
         mapping_time_series(base_dir, models = models, resolution = resolution)
+        mapping_svf(base_dir, models = models, resolution = resolution)

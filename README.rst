@@ -14,9 +14,13 @@
 .. image:: https://img.shields.io/travis/kunifujiwara/canopy_shade.svg
         :target: https://travis-ci.com/kunifujiwara/canopy_shade
 
-.. image:: https://readthedocs.org/projects/canopy-shade/badge/?version=latest
-        :target: https://canopy-shade.readthedocs.io/en/latest/?version=latest
-        :alt: Documentation Status
+.. image:: https://colab.research.google.com/assets/colab-badge.svg
+   :target: https://colab.research.google.com/drive/1fUcqN6aSLGZnzzahIZiy_AkigFn5gY2e?usp=sharing
+   :alt: Open In Colab
+
+.. .. image:: https://readthedocs.org/projects/canopy-shade/badge/?version=latest
+..         :target: https://canopy-shade.readthedocs.io/en/latest/?version=latest
+..         :alt: Documentation Status
 
 
 

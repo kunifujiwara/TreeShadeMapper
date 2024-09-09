@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "canopy_shade"
-version = "0.0.2"
+version = "0.0.3"
 description = "Python package to calculate the shading effect of tree canopies from panoramic imagery"
 readme = "README.rst"
 authors = [

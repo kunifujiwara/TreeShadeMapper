@@ -1,5 +1,5 @@
 """Console script for canopy_shade."""
-import canopy_shade
+import tree_shade_mapper
 
 import typer
 from rich.console import Console

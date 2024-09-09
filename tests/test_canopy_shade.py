@@ -5,7 +5,7 @@
 
 import unittest
 
-from canopy_shade import canopy_shade
+from tree_shade_mapper import tree_shade_mapper
 
 
 class TestCanopy_shade(unittest.TestCase):

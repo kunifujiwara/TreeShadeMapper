@@ -4,4 +4,4 @@ __author__ = """Kunihiko Fujiwara"""
 __email__ = 'kunihiko@nus.edu.sg'
 __version__ = '0.0.1'
 
-from .canopy_shade import *
+from .tree_shade_mapper import *

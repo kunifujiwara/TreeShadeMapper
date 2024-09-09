@@ -11,8 +11,8 @@
 .. image:: https://img.shields.io/pypi/v/canopy_shade.svg
         :target: https://pypi.python.org/pypi/canopy_shade
 
-.. image:: https://img.shields.io/travis/kunifujiwara/canopy_shade.svg
-        :target: https://travis-ci.com/kunifujiwara/canopy_shade
+.. .. image:: https://img.shields.io/travis/kunifujiwara/canopy_shade.svg
+..         :target: https://travis-ci.com/kunifujiwara/canopy_shade
 
 .. image:: https://colab.research.google.com/assets/colab-badge.svg
    :target: https://colab.research.google.com/drive/1fUcqN6aSLGZnzzahIZiy_AkigFn5gY2e?usp=sharing

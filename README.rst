@@ -2,8 +2,8 @@
 Tree Shade Mapper
 =================
 
-.. image:: https://img.shields.io/pypi/v/tree_shade_mapper.svg
-        :target: https://pypi.python.org/pypi/tree_shade_mapper
+.. image:: https://img.shields.io/pypi/v/tree-shade-mapper.svg
+        :target: https://pypi.python.org/pypi/tree-shade-mapper
         :alt: PyPI Version
 
 .. image:: https://colab.research.google.com/assets/colab-badge.svg

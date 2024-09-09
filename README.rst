@@ -2,11 +2,6 @@
 Tree Shade Mapper
 =================
 
-.. image:: https://github.com/kunifujiwara/canopy-shade/blob/main/images/logo.jpg
-   :alt: Project Logo
-   :width: 600px
-   :align: center
-
 .. image:: https://img.shields.io/pypi/v/tree_shade_mapper.svg
         :target: https://pypi.python.org/pypi/tree_shade_mapper
         :alt: PyPI Version
@@ -31,10 +26,6 @@ Citation
 Please cite the paper_ if you use `Tree Shade Mapper` in a scientific publication:
 
 .. _paper: https://doi.org/
-
-.. code-block:: none
-
-..    Fujiwara, K., Khomiakov, M., Yap, W., Ignatius, M., & Biljecki, F. (2024). Microclimate Vision: Multimodal prediction of climatic parameters using street-level and satellite imagery. Sustainable Cities and Society, 105733. doi:10.1016/j.scs.2024.105733
 
 .. code-block:: bibtex
 

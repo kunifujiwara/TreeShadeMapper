@@ -185,7 +185,7 @@ def calc_solar_irradiance(base_dir, time_start, time_end, interval, time_zone, l
     df_solar_accu_path = f"{base_dir}/frames_solar_accu.csv"
     df_solar_accu.to_csv(df_solar_accu_path)
 
-def get_canopy_shade(base_dir, time_start, time_end, interval, time_zone, latitude, longitude, models=['tcm'], calc_type=None, vmin=0, vmax=1000, resolution=14):
+def get_tree_shade(base_dir, time_start, time_end, interval, time_zone, latitude, longitude, models=['tcm'], calc_type=None, vmin=0, vmax=1000, resolution=14):
     calc_transmittance(base_dir, models=models, calc_type=calc_type)
     calc_solar_irradiance(base_dir, time_start, time_end, interval, time_zone, latitude, longitude, models=models)
 

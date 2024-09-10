@@ -1,26 +1,32 @@
-# Microclimate Vision
-<!-- ![Logo](/images/logo_microclimate-vision.svg) -->
+![Logo](https://github.com/kunifujiwara/TreeShadeMapper/blob/main/images/logo.jpg)
 
+[![PyPi version](https://pypi.python.org/pypi/tree-shade-mapper.svg)](https://pypi.python.org/pypi/tree-shade-mapper)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1fUcqN6aSLGZnzzahIZiy_AkigFn5gY2e?usp=sharing)
 [![License: CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/80x15.png)](https://creativecommons.org/licenses/by-sa/4.0/)
 
 ## Overview
-Repository for the code used for multimodal prediction of climatic parameters using street-level and satellite imagery, developed by the [Urban Analytics Lab (UAL)](https://ual.sg/) at the National University of Singapore (NUS).
+Repository for the script used for estimating and mapping the shading effect of trees considering transmittance of tree Canopies from panoramic imagery, developed by the [Urban Analytics Lab (UAL)](https://ual.sg/) at the National University of Singapore (NUS).
 
-You can read more about this project on [its website](https://ual.sg/publication/2024-scs-microclimate-vision/) too.
+You can read more about this project on [its website](https://ual.sg/publication/***/) too.
 
-The journal paper can be found [here](https://doi.org/10.1016/j.scs.2024.105733). 
+The journal paper can be found [here](https://doi.org/***). 
 
-The task of the model is predicting microclimate data at a target location based on microclimate data at a reference location and imagery inputs.
+The method integrates semantic segmentation and binariation to calculate transmittace of tree canopies and estimates the sky view factor and solar irradiance using the calculated transmittance.
 
 ![concept](images/concept.jpg)
 
-This model consists of LSTM and ResNet-18 architectures, and predicts air temperature $T_{air}$, relative humidity $RH$, wind speed $\nu$, and global horizontal irradiance $GHI$.
+The potential use cases include high-resolution mapping of the sky view factor and solar irradiance and walk route evaluation considering sunlight exposure.
 
-![model](images/model_archi.jpg)
+![usecases](images/usecases.jpg)
 
-## Installation
+## Installation of `tree_shade_mapper`
 
-Since `Microclimate Vision` uses `pytorch` and `torchvision`, you may need to install them separately. Please refer to the [official website](https://pytorch.org/get-started/locally/) for installation instructions.
+```bash
+$ pip install tree_shade_mapper
+```
+## Installation of `pytorch` and `torchvision`
+
+Since `tree_shade_mapper` uses `pytorch` and `torchvision`, you may need to install them separately. Please refer to the [official website](https://pytorch.org/get-started/locally/) for installation instructions.
 
 ## Usage
 

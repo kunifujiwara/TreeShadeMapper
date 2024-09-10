@@ -35,12 +35,10 @@ Since `tree_shade_mapper` uses `pytorch` and `torchvision`, you may need to inst
 ## Usage
 
 ### Data preparation
-You need to create a dataset integrating microclimate data with street-level and satellite imagery. Please refer to the sample files in the "data" directory. Note that these sample files do not contain observed real data, but rather virtual data created to demonstrate the proper data structure.
-
-![data](images/examle_datapoint.jpg)
+You need to create a dataset with panoramic imagery and a csv file. Please refer to the sample files in the "data" directory. 
 
 ### Tree shade calculation and mapping
-```
+```python
 from tree_shade_mapper import get_tree_shade
 
 base_dir = '/path/to/your/input/directory'

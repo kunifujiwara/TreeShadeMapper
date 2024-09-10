@@ -13,11 +13,15 @@ The journal paper can be found [here](https://doi.org/***).
 
 The method integrates semantic segmentation and binariation to calculate transmittace of tree canopies and estimates the sky view factor and solar irradiance using the calculated transmittance.
 
-<img src="images/method.png" width="500" alt="method">
+<div style="text-align:center">
+  <img src="images/method.png" width="400" alt="method">
+</div>
 
 The potential use cases include high-resolution mapping of the sky view factor and solar irradiance and walk route evaluation considering sunlight exposure.
 
-<img src="images/usecases.png" width="800" alt="usecases">
+<div style="text-align:center">
+  <img src="images/usecases.png" width="800" alt="usecases">
+</div>
 
 ## Installation of `tree_shade_mapper`
 
@@ -50,22 +54,22 @@ python test.py --config path/to/config --model path/to/model --result path/to/re
 
 ## License
 
-`Microclimate Vision` was created by Kunihiko Fujiwara. It is licensed under the terms of the CC BY-SA 4.0.
+`tree_shade_mapper` was created by Kunihiko Fujiwara. It is licensed under the terms of the CC BY-SA 4.0.
 
 ## Citation
 
-Please cite the [paper](https://doi.org/10.1016/j.scs.2024.105733) if you use `Microclimate Vision` in a scientific publication:
+Please cite the [paper](https://doi.org/XXX) if you use `tree_shade_mapper` in a scientific publication:
 
-Fujiwara, K., Khomiakov, M., Yap, W., Ignatius, M., & Biljecki, F. (2024). Microclimate Vision: Multimodal prediction of climatic parameters using street-level and satellite imagery. Sustainable Cities and Society, 105733. doi:[10.1016/j.scs.2024.105733](https://doi.org/10.1016/j.scs.2024.105733)
+XXX
 
 ```bibtex
-@article{2024_scs_microclimate_vision,
- author = {Fujiwara, Kunihiko and Khomiakov, Maxim and Yap, Winston and Ignatius, Marcel and Biljecki, Filip},
- doi = {10.1016/j.scs.2024.105733},
- journal = {Sustainable Cities and Society},
- pages = {105733},
- title = {Microclimate Vision: Multimodal prediction of climatic parameters using street-level and satellite imagery},
- volume = {114},
- year = {2024}
+@article{2024_XXX,
+ author = {XXX, XXX},
+ doi = {XXX},
+ journal = {XXX},
+ pages = {XXX},
+ title = {XXX},
+ volume = {XXX},
+ year = {XXX}
 }
 ```

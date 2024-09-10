@@ -13,11 +13,11 @@ The journal paper can be found [here](https://doi.org/***).
 
 The method integrates semantic segmentation and binariation to calculate transmittace of tree canopies and estimates the sky view factor and solar irradiance using the calculated transmittance.
 
-![concept](images/concept.jpg)
+<img src="images/concept.png" width="300" alt="concept">
 
 The potential use cases include high-resolution mapping of the sky view factor and solar irradiance and walk route evaluation considering sunlight exposure.
 
-![usecases](images/usecases.jpg)
+<img src="images/usecases.png" width="600" alt="usecases">
 
 ## Installation of `tree_shade_mapper`
 

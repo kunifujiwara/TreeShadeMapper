@@ -686,3 +686,26 @@ def filter_stable_condition(df, consective = 10, threshold = 100):
 
     # Resulting DataFrame with sequences meeting the criteria
     return df_filtered
+
+def interval_to_seconds(interval):
+    # Split the interval into number and unit
+    number = int(''.join(filter(str.isdigit, interval)))
+    unit = ''.join(filter(str.isalpha, interval))
+
+    # Dictionary to convert units to seconds
+    unit_to_seconds = {
+        'sec': 1,
+        'min': 60,
+        'hour': 3600,
+        'day': 86400,
+        'week': 604800,
+        'month': 2592000,  # Assuming 30 days in a month
+        'year': 31536000,  # Assuming 365 days in a year
+    }
+
+    # Check if the unit is valid
+    if unit not in unit_to_seconds:
+        raise ValueError(f"Invalid unit: {unit}. Supported units are: {', '.join(unit_to_seconds.keys())}")
+
+    # Calculate and return the total seconds
+    return number * unit_to_seconds[unit]

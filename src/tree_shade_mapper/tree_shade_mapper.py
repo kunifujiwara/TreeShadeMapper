@@ -10,6 +10,7 @@ from .image_process import get_sky_view_factor_from_binary
 
 from .solar_data_process import create_solar_time_series 
 from .solar_data_process import calc_solar_irradiance_under_tree_map
+from .solar_data_process import interval_to_seconds
 from .visualization import mapping_accu, mapping_time_series, mapping_svf
 
 kernel_size = 40
@@ -179,7 +180,7 @@ def calc_solar_irradiance(base_dir, time_start, time_end, interval, time_zone, l
     # Group by 'frame_key' and apply the aggregation functions
     df_solar_accu = df_solar_all.groupby('frame_key').agg(aggregations)
     for model in models:
-        df_solar_accu[f'ghi_utc_{model}'] = df_solar_accu[f'ghi_utc_{model}'] * 300 / 1000000
+        df_solar_accu[f'ghi_utc_acc_{model}'] = df_solar_accu[f'ghi_utc_{model}'] * interval_to_seconds(interval) / 1000000
 
 
     df_solar_accu_path = f"{base_dir}/frames_solar_accu.csv"

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tree_shade_mapper"
-version = "0.0.3"
+version = "0.0.4"
 description = "Python package to calculate the shading effect of tree canopies from panoramic imagery"
 readme = "README.rst"
 authors = [

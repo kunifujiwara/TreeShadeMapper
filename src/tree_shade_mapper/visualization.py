@@ -3,6 +3,9 @@ from PIL import Image, ImageDraw
 from IPython.display import display
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
+from matplotlib.cm import ScalarMappable
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 import contextily as ctx
 import seaborn as sns
@@ -10,6 +13,7 @@ import pandas as pd
 import geopandas as gpd
 import os
 import shutil
+import math
 
 import folium
 import branca.colormap as cm
@@ -527,47 +531,65 @@ def save_choropleth_svg(df_aggreg, df_original, value_name, vmin, vmax, fill_opa
 
 def save_choropleth_with_basemap(df_aggreg, df_original, value_name, vmin, vmax, fill_opacity=0.7, cmap=None, initial_map=None, save_dir=None):
     """
-    Creates choropleth maps with a raster basemap and expands the view area. 
+    Creates choropleth maps with a raster basemap, expands the view area, and adds a color bar on the map.
     `expand_area_ratio` determines how much to expand the area around the data.
     """
     expand_area_ratio_x = 0.25
     expand_area_ratio_y = 0.15
-
     column_name = value_name
-
     # Create geojson data from dataframe
     geojson_data = hexagons_dataframe_to_geojson(df_hex=df_aggreg, column_name=column_name)
     geojson_data = json.loads(geojson_data)
     gdf = gpd.GeoDataFrame.from_features(geojson_data['features'])
-
     # Set coordinate reference system to Web Mercator
     gdf = gdf.set_crs("EPSG:4326")  # Assuming your data is in WGS84
     gdf = gdf.to_crs(epsg=3857)  # Convert to Web Mercator
-
+    
     # Plotting
     fig, ax = plt.subplots(figsize=(10, 10))
     gdf.plot(column=column_name, cmap=cmap, ax=ax, alpha=fill_opacity, legend=False, vmin=vmin, vmax=vmax)
-
+    
     # Expand the area of the map
     minx, miny, maxx, maxy = gdf.total_bounds
     dx = (maxx - minx) * expand_area_ratio_x
     dy = (maxy - miny) * expand_area_ratio_y
-    ax.set_xlim(minx - dx, maxx + dx)
+    ax.set_xlim(minx - dx, maxx + 2*dx)
     ax.set_ylim(miny - dy, maxy + dy)
-
+    
     # Remove axis lines
     ax.set_axis_off()
-
+    
     # Adding Contextily basemap
     ctx.add_basemap(ax, source=ctx.providers.CartoDB.Positron)
+    
+    # Add color bar on the map
+    norm = Normalize(vmin=vmin, vmax=vmax)
+    sm = ScalarMappable(norm=norm, cmap=cmap)
+    sm.set_array([])
+    
+    # Create an inset axes for the colorbar
+    cax = inset_axes(ax, width="2%", height="30%", loc='lower right', 
+                    bbox_to_anchor=(-0.1, 0.05, 1, 1),
+                    bbox_transform=ax.transAxes,
+                    borderpad=0)
+    
+    if "acc" in value_name:
+        value_title = r'$GHI_{utc\_acc}$  (kJm$^{-2}$)'
+    elif "ghi" in value_name:
+        value_title = r'$GHI_{utc}$  (Wm$^{-2}$)'
+    elif "svf" in value_name:
+        value_title = 'Sky view factor'
 
+    cbar = fig.colorbar(sm, cax=cax, orientation='vertical')
+    cbar.set_label(value_title, rotation=270, labelpad=15)
+    
     # Save the plot as a PNG file
     user_colored_png_file = f"{save_dir}/{value_name}_map.png"
-    plt.savefig(user_colored_png_file, format='png', bbox_inches='tight')
+    plt.savefig(user_colored_png_file, format='png', bbox_inches='tight', dpi=300)
+    plt.show()
+    # plt.close(fig)
 
-    # plt.show()
-
-def save_choropleth_with_basemap_time(df_aggreg, df_original, value_name, vmin, vmax, fill_opacity=0.7, cmap=None, initial_map=None, save_dir=None, save_name = None, basemap = None):
+def save_choropleth_with_basemap_time(df_aggreg, datetime, value_name, vmin, vmax, fill_opacity=0.7, cmap=None, initial_map=None, save_dir=None, save_name = None, basemap = None):
     """
     Creates choropleth maps with a raster basemap and expands the view area. 
     `expand_area_ratio` determines how much to expand the area around the data.
@@ -594,7 +616,7 @@ def save_choropleth_with_basemap_time(df_aggreg, df_original, value_name, vmin, 
     minx, miny, maxx, maxy = gdf.total_bounds
     dx = (maxx - minx) * expand_area_ratio_x
     dy = (maxy - miny) * expand_area_ratio_y
-    ax.set_xlim(minx - dx, maxx + dx)
+    ax.set_xlim(minx - dx, maxx + 2*dx)
     ax.set_ylim(miny - dy, maxy + dy)
 
     # Remove axis lines
@@ -605,6 +627,32 @@ def save_choropleth_with_basemap_time(df_aggreg, df_original, value_name, vmin, 
         ctx.add_basemap(ax, source=ctx.providers.CartoDB.Positron)
     if basemap == "satellite":
         ctx.add_basemap(ax, source=ctx.providers.Esri.WorldImagery)    
+
+    # Add color bar on the map
+    norm = Normalize(vmin=vmin, vmax=vmax)
+    sm = ScalarMappable(norm=norm, cmap=cmap)
+    sm.set_array([])
+    
+    # Create an inset axes for the colorbar
+    cax = inset_axes(ax, width="2%", height="30%", loc='lower right', 
+                    bbox_to_anchor=(-0.1, 0.05, 1, 1),
+                    bbox_transform=ax.transAxes,
+                    borderpad=0)
+    
+    if "acc" in value_name:
+        value_title = r'$GHI_{utc\_acc}$  (kJm$^{-2}$)'
+    elif "ghi" in value_name:
+        value_title = r'$GHI_{utc}$  (Wm$^{-2}$)'
+    elif "svf" in value_name:
+        value_title = 'Sky view factor'
+    
+    cbar = fig.colorbar(sm, cax=cax, orientation='vertical')
+    cbar.set_label(value_title, rotation=270, labelpad=15)
+
+    text_content = f"{datetime}".replace(":00+08:00", "")
+    text_position = (0.05, 0.05)  # Top-left corner
+    text_style = {'fontsize': 15, 'color': 'black', 'fontweight': 'bold', 'ha': 'left', 'va': 'bottom'}  # Optional: override default style
+    ax.text(text_position[0], text_position[1], text_content, transform=ax.transAxes, **text_style)
 
     # Save the plot as a PNG file
     user_colored_png_file = f"{save_dir}/{value_name}_map.png"
@@ -617,13 +665,14 @@ def save_choropleth_with_basemap_time(df_aggreg, df_original, value_name, vmin, 
 
     plt.savefig(user_colored_png_file, format='png', bbox_inches='tight')
 
-    # plt.show()
+    plt.show()
+    # plt.close(fig)
 
 def mapping_h3_grid(df_map, value_name, vmin, vmax, resolution = None, cmap = None, save_dir = None, fill_opacity = None):
     hex_ids = df_map.apply(lambda row: h3.geo_to_h3(row.lat, row.lon, resolution), axis = 1)
     df_map = df_map.assign(hex_id=hex_ids.values)
     df_h3 = df_map.groupby("hex_id", as_index=False).agg({value_name: "mean"})
-    save_choropleth_svg(df_h3, df_map, value_name, vmin, vmax, fill_opacity = fill_opacity, cmap = cmap, initial_map = None, save_dir = save_dir)
+    # save_choropleth_svg(df_h3, df_map, value_name, vmin, vmax, fill_opacity = fill_opacity, cmap = cmap, initial_map = None, save_dir = save_dir)
     save_choropleth_with_basemap(df_h3, df_map, value_name, vmin, vmax, fill_opacity = fill_opacity, cmap = cmap, initial_map = None, save_dir = save_dir)
     return choropleth_map(df_h3, df_map, value_name, vmin, vmax, fill_opacity = fill_opacity, cmap = cmap, initial_map = None)
 
@@ -641,8 +690,8 @@ def mapping_h3_grid_timeseries(df_map, value_name, vmin, vmax, resolution = None
         df_map_filtered = df_map_filtered.assign(hex_id=hex_ids.values)
         df_h3 = df_map_filtered.groupby("hex_id", as_index=False).agg({value_name: "mean"})
 
-        save_choropleth_svg(df_h3, df_map_filtered, value_name, vmin, vmax, fill_opacity = fill_opacity, cmap = cmap, initial_map = None, save_dir = save_dir, save_name = formatted_date_str)
-        save_choropleth_with_basemap_time(df_h3, df_map_filtered, value_name, vmin, vmax, fill_opacity = fill_opacity, cmap = cmap, initial_map = None, save_dir = save_dir, save_name = formatted_date_str, basemap = basemap)
+        # save_choropleth_svg(df_h3, df_map_filtered, value_name, vmin, vmax, fill_opacity = fill_opacity, cmap = cmap, initial_map = None, save_dir = save_dir, save_name = formatted_date_str)
+        save_choropleth_with_basemap_time(df_h3, time, value_name, vmin, vmax, fill_opacity = fill_opacity, cmap = cmap, initial_map = None, save_dir = save_dir, save_name = formatted_date_str, basemap = basemap)
 
 def mapping_h3_grid_timeseries_normalized(df_map, value_name, resolution = None, cmap = None, save_dir = None, fill_opacity = None):
     df_map['time'] = pd.to_datetime(df_map['time'])
@@ -710,7 +759,8 @@ def mapping_accu(base_dir, vmin = 0, vmax = 1000, resolution = 15, models = ["tc
         if not os.path.exists(map_dir):
             os.makedirs(map_dir)
 
-        item = f"ghi_utc_{model}" 
+        item = f"ghi_utc_acc_{model}" 
+        vmax = 5 * math.ceil(df_solar_all[f"ghi_utc_acc_{model}"].max() / 5)
         mapping_h3_grid(df_solar_all, item, vmin, vmax, resolution = resolution, cmap = "inferno", save_dir = map_dir, fill_opacity = 0.8)
 
 def mapping_svf(base_dir, vmin = 0, vmax = 1, resolution = 15, models = ["tcm"], gps_precision_lim = None):

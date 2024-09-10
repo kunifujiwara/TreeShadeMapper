@@ -1,6 +1,6 @@
 ![Logo](https://github.com/kunifujiwara/TreeShadeMapper/blob/main/images/logo.jpg)
 
-[![PyPi version](https://pypi.python.org/pypi/tree-shade-mapper.svg)](https://pypi.python.org/pypi/tree-shade-mapper)
+[![PyPi version](https://img.shields.io/pypi/v/tree-shade-mapper.svg)](https://pypi.python.org/pypi/tree-shade-mapper)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1fUcqN6aSLGZnzzahIZiy_AkigFn5gY2e?usp=sharing)
 [![License: CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/80x15.png)](https://creativecommons.org/licenses/by-sa/4.0/)
 
@@ -13,7 +13,7 @@ The journal paper can be found [here](https://doi.org/***).
 
 The method integrates semantic segmentation and binariation to calculate transmittace of tree canopies and estimates the sky view factor and solar irradiance using the calculated transmittance.
 
-<img src="images/concept.png" width="300" alt="concept">
+<img src="images/method.png" width="300" alt="method">
 
 The potential use cases include high-resolution mapping of the sky view factor and solar irradiance and walk route evaluation considering sunlight exposure.
 

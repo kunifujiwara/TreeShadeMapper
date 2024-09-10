@@ -39,17 +39,29 @@ You need to create a dataset integrating microclimate data with street-level and
 
 ![data](images/examle_datapoint.jpg)
 
-#### Config file
+### Tree shade calculation and mapping
+```
+from tree_shade_mapper import get_tree_shade
 
-The detailed settings, e.g., hyperparameters of the model and paths to dataset files, are specified in a config file. Please refer to 'configs/sample.yaml'.
+base_dir = '/path/to/your/input/directory'
+calc_type = 'map'
 
-### Training
-```
-python train.py --config path/to/config
-```
-### Test
-```
-python test.py --config path/to/config --model path/to/model --result path/to/result
+# Define start and end time, and the interval
+time_start = '2024-01-01 07:00:00'
+time_end = '2024-01-01 20:00:00'
+interval = '5min'
+
+# Define time zone and location
+time_zone = 'Asia/Singapore'
+latitude = 1.29751
+longitude = 103.77012
+
+# Define varibles for visualization
+vmin = 0
+vmax = 1200
+resolution = 14
+
+get_tree_shade(base_dir, time_start, time_end, interval, time_zone, latitude, longitude, calc_type=calc_type, vmin=vmin, vmax=vmax, resolution = resolution)
 ```
 
 ## License
@@ -59,6 +71,20 @@ python test.py --config path/to/config --model path/to/model --result path/to/re
 ## Citation
 
 Please cite the [paper](https://doi.org/XXX) if you use `tree_shade_mapper` in a scientific publication:
+
+XXX
+
+```bibtex
+@article{2024_XXX,
+ author = {XXX, XXX},
+ doi = {XXX},
+ journal = {XXX},
+ pages = {XXX},
+ title = {XXX},
+ volume = {XXX},
+ year = {XXX}
+}
+```
 
 XXX
 

@@ -37,7 +37,7 @@ Since `tree_shade_mapper` uses `pytorch` and `torchvision`, you may need to inst
 ### Data preparation
 You need to create a dataset with panoramic imagery and a csv file. Please refer to the sample files in the "data" directory. 
 
-### Tree shade calculation and mapping
+### Calculation and mapping
 ```python
 from tree_shade_mapper import get_tree_shade
 

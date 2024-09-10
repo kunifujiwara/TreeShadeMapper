@@ -140,7 +140,7 @@ def calc_solar_irradiance(base_dir, time_start, time_end, interval, time_zone, l
         df_solar["frame_key"] = row["frame_key"]
         df_solar["lat"] = row["lat"]
         df_solar["lon"] = row["lon"]
-        df_solar["precision"] = row["precision"]
+        # df_solar["precision"] = row["precision"]
         df_solar_list.append(df_solar)
 
     # Concatenate all dataframes in the list
@@ -169,7 +169,7 @@ def calc_solar_irradiance(base_dir, time_start, time_end, interval, time_zone, l
         ## Average the latitude and longitude
         'lat': 'mean',
         'lon': 'mean',
-        'precision': 'mean',
+        # 'precision': 'mean',
     }
 
     for model in models:

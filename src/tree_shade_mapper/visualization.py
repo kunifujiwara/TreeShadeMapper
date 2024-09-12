@@ -569,7 +569,7 @@ def save_choropleth_with_basemap(df_aggreg, df_original, value_name, vmin, vmax,
     
     # Create an inset axes for the colorbar
     cax = inset_axes(ax, width="2%", height="30%", loc='lower right', 
-                    bbox_to_anchor=(-0.1, 0.05, 1, 1),
+                    bbox_to_anchor=(-0.15, 0.05, 1, 1),
                     bbox_transform=ax.transAxes,
                     borderpad=0)
     
@@ -635,7 +635,7 @@ def save_choropleth_with_basemap_time(df_aggreg, datetime, value_name, vmin, vma
     
     # Create an inset axes for the colorbar
     cax = inset_axes(ax, width="2%", height="30%", loc='lower right', 
-                    bbox_to_anchor=(-0.1, 0.05, 1, 1),
+                    bbox_to_anchor=(-0.15, 0.05, 1, 1),
                     bbox_transform=ax.transAxes,
                     borderpad=0)
     

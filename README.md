@@ -97,3 +97,12 @@ XXX
  year = {XXX}
 }
 ```
+
+--------------------------------------------------------------------------------
+<br>
+<br>
+<p align="center">
+  <a href="https://ual.sg/">
+    <img src="https://raw.githubusercontent.com/winstonyym/urbanity/main/images/ualsg.jpeg" width = 55% alt="Logo">
+  </a>
+</p>

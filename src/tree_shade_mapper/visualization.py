@@ -574,7 +574,7 @@ def save_choropleth_with_basemap(df_aggreg, df_original, value_name, vmin, vmax,
                     borderpad=0)
     
     if "acc" in value_name:
-        value_title = r'$GHI_{utc\_acc}$  (kJm$^{-2}$)'
+        value_title = r'$GHI_{utc\_acc}$  (MJm$^{-2}$)'
     elif "ghi" in value_name:
         value_title = r'$GHI_{utc}$  (Wm$^{-2}$)'
     elif "svf" in value_name:
@@ -679,6 +679,7 @@ def mapping_h3_grid(df_map, value_name, vmin, vmax, resolution = None, cmap = No
 def mapping_h3_grid_timeseries(df_map, value_name, vmin, vmax, resolution = None, cmap = None, save_dir = None, fill_opacity = None, basemap = None):
     df_map['time'] = pd.to_datetime(df_map['time'])
     times = list(set(df_map["time"].tolist()))
+    times = sorted(times)
 
     for time in times:        
         # Convert to datetime object

@@ -349,7 +349,7 @@ def calc_walk_accumulated_ghi(walk_base_dir, map_base_dir, walk_id, time_start, 
         array_transmittance = array = np.load(tra_path)
         ghi_utc = calc_solar_irradiance_under_tree_walk(row, array_transmittance, row[f"svf_{model}"], azimuth_offset = azimuth_offset)
         ghi_utc_list.append(ghi_utc)
-        ghi_utc_accu += ghi_utc * interval_t / 1000000 #unit KJ/m^2
+        ghi_utc_accu += ghi_utc * interval_t / 1000000 #unit MJ/m^2
         ghi_utc_accu_list.append(ghi_utc_accu)
         
     df_solar_walk_frames["ghi_utc"] = ghi_utc_list

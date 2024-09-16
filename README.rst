@@ -25,7 +25,7 @@ Citation
 
 Please cite the paper_ if you use `Tree Shade Mapper` in a scientific publication:
 
-.. _paper: https://doi.org/
+.. _paper: https://doi.org/10.1016/j.buildenv.2024.112071
 
 .. code-block:: bibtex
 

@@ -72,7 +72,7 @@ get_tree_shade(base_dir, time_start, time_end, interval, time_zone, latitude, lo
 
 ## Citation
 
-Please cite the [paper](https://doi.org/XXX) if you use `tree_shade_mapper` in a scientific publication:
+Please cite the [paper](https://doi.org/10.1016/j.buildenv.2024.112071) if you use `tree_shade_mapper` in a scientific publication:
 
 Fujiwara, K., Ito, K., Ignatius, M., & Biljecki, F. (2024). A panorama-based technique to estimate sky view factor and solar irradiance considering transmittance of tree canopies. Building and Environment, 266, 112071.
 

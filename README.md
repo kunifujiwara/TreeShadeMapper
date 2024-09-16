@@ -1,6 +1,6 @@
 <!-- ![Logo](https://github.com/kunifujiwara/TreeShadeMapper/blob/main/images/logo.svg) -->
 <p align="center">
-  <img src="https://github.com/kunifujiwara/TreeShadeMapper/blob/main/images/logo.svg" width="800" alt="logo">
+  <img src="https://github.com/kunifujiwara/TreeShadeMapper/blob/main/images/logo.svg" width="400" alt="logo">
 </p>
 
 

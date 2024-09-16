@@ -12,7 +12,7 @@ Tree Shade Mapper
 
 Python package to calculate the shading effect of tree canopies from panoramic imagery
 
-* Free software: MIT license
+* Free software: CC-BY-SA-4.0
 * Documentation: https://tree_shade_mapper.readthedocs.io.
 
 Features

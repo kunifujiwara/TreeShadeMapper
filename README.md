@@ -70,7 +70,21 @@ get_tree_shade(base_dir, time_start, time_end, interval, time_zone, latitude, lo
 
 Please cite the [paper](https://doi.org/XXX) if you use `tree_shade_mapper` in a scientific publication:
 
-XXX
+Fujiwara, K., Ito, K., Ignatius, M., & Biljecki, F. (2024). A panorama-based technique to estimate sky view factor and solar irradiance considering transmittance of tree canopies. Building and Environment, 266, 112071.
+
+```bibtex
+@article{2024_bae_svf,
+  author = {Fujiwara, Kunihiko and Ito, Koichi and Ignatius, Marcel and Biljecki, Filip},
+  doi = {10.1016/j.buildenv.2024.112071},
+  journal = {Building and Environment},
+  pages = {112071},
+  title = {A panorama-based technique to estimate sky view factor and solar irradiance considering transmittance of tree canopies},
+  volume = {266},
+  year = {2024}
+}
+```
+
+<!-- XXX
 
 ```bibtex
 @article{2024_XXX,
@@ -82,21 +96,13 @@ XXX
  volume = {XXX},
  year = {XXX}
 }
-```
+``` -->
 
-XXX
+## Credit
 
-```bibtex
-@article{2024_XXX,
- author = {XXX, XXX},
- doi = {XXX},
- journal = {XXX},
- pages = {XXX},
- title = {XXX},
- volume = {XXX},
- year = {XXX}
-}
-```
+This package uses [ZenSVI](https://github.com/koito19960406/ZenSVI) for semantic segmentation.
+
+This package was created with [Cookiecutter](https://github.com/audreyr/cookiecutter) and the [`audreyr/cookiecutter-pypackage`](https://github.com/audreyr/cookiecutter-pypackage) project template.
 
 --------------------------------------------------------------------------------
 <br>

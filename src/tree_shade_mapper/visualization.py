@@ -20,6 +20,7 @@ import branca.colormap as cm
 import io
 import base64
 from PIL import Image
+import cv2
 
 from geojson import Feature, FeatureCollection
 import json
@@ -103,6 +104,42 @@ def display_sun_trajectory_with_value(frame_path, df_sunposi, azimuth_offset=0, 
             # draw.text((index_azimuth+radius*2, index_zenith), time_list[i], fill='red')#, font=font)
 
     display(img)
+
+def display_sun_trajectory_for_video(base_dir, frame_key, df_sunposi, azimuth_offset=180):
+    #font = ImageFont.truetype('/usr/share/fonts/truetype/liberation/LiberationMono-Bold.ttf', 30)
+    
+    frame_path = f"{base_dir}/resized/{frame_key}.jpg"    
+    output_dir = f"{base_dir}/sunposi_for_video"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    time_list = df_sunposi.index.strftime('%Y-%m-%d-%H-%M').tolist()
+
+    for i in range(len(df_sunposi)):
+        azimuth = (df_sunposi["azimuth"][i]+azimuth_offset)%360#degree
+        zenith = df_sunposi["zenith"][i]#degree       
+
+        if time_list[i][-1:] == '0':
+            #print(azimuth, zenith)
+            img = Image.open(frame_path)
+            img = img.resize((2048, 1024))
+            img_arr = np.array(img)
+            img_h = img_arr.shape[0]
+            img_w = img_arr.shape[1]
+            # Draw markers
+            x = [10]
+            y = [20]
+            draw = ImageDraw.Draw(img)
+        
+            index_azimuth = int(round(img_w * azimuth / 360, 0))
+            index_zenith = int(round(img_h / 2 * zenith / 90, 0))
+            #print(index_azimuth, index_azimuth%360)
+            radius=30
+            draw.ellipse((index_azimuth-radius, index_zenith-radius, index_azimuth+radius, index_zenith+radius), outline='yellow', fill='yellow')
+            # draw.text((index_azimuth+radius*2, index_zenith), time_list[i], fill='yellow')#, font=font)
+
+            output_path = os.path.join(output_dir, f"{frame_key}_{time_list[i]}.jpg")
+            img.save(output_path)
 
 def value_to_color(value):
     norm = matplotlib.colors.Normalize(vmin=-500, vmax=500)
@@ -793,6 +830,9 @@ def mapping_time_series(base_dir, vmin = 0, vmax = 1000, resolution = 15, models
 
         item = f"ghi_utc_{model}"    
         mapping_h3_grid_timeseries(df_solar_all, item, vmin, vmax, resolution = resolution, cmap = "inferno", save_dir = map_dir, fill_opacity = 0.8, basemap = "carto")
+        
+        frame_dir = f"map_{model}_{resolution}_time_series"
+        create_video(base_dir, frame_dir)
 
 def hexbin_plot_prediction(df, ground_truth, prediction, xlabel='x', ylabel='y', xymin=None, xymax=None, vmax=None, cmap="viridis", tag = ''):
     # density_scatter(df[weather_item+'_target_pred'], df[weather_item+'_target'], bins = [10,10] )
@@ -958,3 +998,30 @@ def save_point_map_with_basemap_no_value(df_points, marker_size = 15, fill_color
         plt.savefig(user_colored_png_file, format='png', bbox_inches='tight')
 
     plt.show()
+
+def create_video(base_dir, frame_dir):
+    # Set the path to the directory containing the images
+    image_folder = f"{base_dir}/{frame_dir}"
+    video_name = f'{base_dir}/{frame_dir}_video.mp4'
+
+    # List of common image file extensions
+    image_extensions = ('.png', '.jpg', '.jpeg', '.gif', '.bmp')
+
+    # Using a list comprehension to get all files with the specified extensions
+    images = [img for img in os.listdir(image_folder) if img.lower().endswith(image_extensions)]
+    print(images)
+    images.sort()  # Sort the images by name
+
+    # Determine the width and height from the first image
+    frame = cv2.imread(os.path.join(image_folder, images[0]))
+    height, width, layers = frame.shape
+
+    # Define the codec and create VideoWriter object
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Use 'mp4v' for MP4 file
+    video = cv2.VideoWriter(video_name, fourcc, 20, (width, height))  # 1 is the frame rate
+
+    for image in images:
+        video.write(cv2.imread(os.path.join(image_folder, image)))
+
+    cv2.destroyAllWindows()
+    video.release()

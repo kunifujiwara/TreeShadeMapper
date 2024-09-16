@@ -11,7 +11,7 @@ from .image_process import get_sky_view_factor_from_binary
 from .solar_data_process import create_solar_time_series 
 from .solar_data_process import calc_solar_irradiance_under_tree_map
 from .solar_data_process import interval_to_seconds
-from .visualization import mapping_accu, mapping_time_series, mapping_svf
+from .visualization import mapping_accu, mapping_time_series, mapping_svf, create_video
 
 kernel_size = 40
 binary_type = "brightness"
@@ -52,20 +52,21 @@ def calc_transmittance(base_dir, models=["tcm"], calc_type = None):
                 
                 if os.path.exists(tra_path) & os.path.exists(bin_path):
                     array_binary = np.load(bin_path)
+                    array_transmittance = np.load(tra_path)
                 else:
                     array_transmittance, array_binary = get_transmittance_center_of_modes_upper(ori_path, seg_path, kernel_size, binary_type = binary_type, model = model, type = 'q2')
-
-                    np.save(tra_path, array_transmittance)
-                    # magma_array_transmittance = mcm.magma(array_transmittance, bytes=True)
-                    # tra_img = Image.fromarray(magma_array_transmittance * 255, 'RGB')
-                    # tra_img.save(tra_img_path)
-                    plt.imsave(tra_img_path, array_transmittance, cmap='magma')
                     np.save(bin_path, array_binary)
-                    # bin_img = Image.fromarray(array_binary * 255, 'L')
-                    # bin_img.save(bin_img_path)
-                    # display_image(array_binary, 'gray')
-                    # display_image(array_transmittance, 'magma')
-                    plt.imsave(bin_img_path, array_binary, cmap='gray')
+                    np.save(tra_path, array_transmittance)
+                # magma_array_transmittance = mcm.magma(array_transmittance, bytes=True)
+                # tra_img = Image.fromarray(magma_array_transmittance * 255, 'RGB')
+                # tra_img.save(tra_img_path)
+                plt.imsave(tra_img_path, array_transmittance, cmap='magma')
+                
+                # bin_img = Image.fromarray(array_binary * 255, 'L')
+                # bin_img.save(bin_img_path)
+                # display_image(array_binary, 'gray')
+                # display_image(array_transmittance, 'magma')
+                plt.imsave(bin_img_path, array_binary, cmap='gray')
 
                 # display_image(array_seg_binary, 'gray')
                 # display_image(array_transmittance, 'jet')
@@ -101,19 +102,24 @@ def calc_transmittance(base_dir, models=["tcm"], calc_type = None):
                 seg_path = os.path.join(seg_dir, row["frame_key"]+"_colored_segmented.png")
                 tra_path = os.path.join(tra_dir, row["frame_key"]+"_tra.npy")
                 bin_path = os.path.join(bin_dir, row["frame_key"]+"_bin.npy")
+                tra_img_path = os.path.join(tra_dir, row["frame_key"]+"_tra.jpg")
+                bin_img_path = os.path.join(bin_dir, row["frame_key"]+"_bin.jpg")
+                svf_img_path = os.path.join(bin_dir, row["frame_key"]+"_svf.jpg")
                 
                 if os.path.exists(tra_path) & os.path.exists(bin_path):
                     array_binary = np.load(bin_path)
+                    array_transmittance = np.load(tra_path)
                 else:
                     array_transmittance, array_binary = array_transmittance, array_binary = get_transmittance_center_of_modes_upper(ori_path, seg_path, kernel_size, binary_type = binary_type, model = model, type = "q2")
                     np.save(tra_path, array_transmittance)
                     np.save(bin_path, array_binary)
 
-                # display_image(array_seg_binary, 'gray')
-                # display_image(array_transmittance, 'jet')
+                plt.imsave(tra_img_path, array_transmittance, cmap='magma')
+                plt.imsave(bin_img_path, array_binary, cmap='gray')
 
-                sky_view_factor, _ = get_sky_view_factor_from_binary(array_binary)
+                sky_view_factor, svf_binary = get_sky_view_factor_from_binary(array_binary)
                 svf_list.append(sky_view_factor)
+                plt.imsave(svf_img_path, svf_binary, cmap='gray')
 
             df_frames[f"svf_{model}"] = svf_list
 
@@ -194,3 +200,5 @@ def get_tree_shade(base_dir, time_start, time_end, interval, time_zone, latitude
         mapping_accu(base_dir, vmin=vmin, vmax = vmax, models = models, resolution = resolution)
         mapping_time_series(base_dir, models = models, resolution = resolution)
         mapping_svf(base_dir, models = models, resolution = resolution)
+        frame_dir = f"resized"
+        create_video(base_dir, frame_dir)

@@ -1,7 +1,7 @@
-![Logo](https://github.com/kunifujiwara/TreeShadeMapper/blob/main/images/logo.svg)
-<!-- <p align="center">
-  <img src="https://github.com/kunifujiwara/TreeShadeMapper/blob/main/images/logo.svg" width="400" alt="logo">
-</p> -->
+<!-- ![Logo](https://github.com/kunifujiwara/TreeShadeMapper/blob/main/images/logo.svg) -->
+<p align="center">
+  <img src="https://github.com/kunifujiwara/TreeShadeMapper/blob/main/images/logo.svg" width="800" alt="logo">
+</p>
 
 
 [![PyPi version](https://img.shields.io/pypi/v/tree-shade-mapper.svg)](https://pypi.python.org/pypi/tree-shade-mapper)

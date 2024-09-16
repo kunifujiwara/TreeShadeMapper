@@ -1,4 +1,4 @@
-![Logo](https://github.com/kunifujiwara/TreeShadeMapper/blob/main/images/logo.png)
+![Logo](https://github.com/kunifujiwara/TreeShadeMapper/blob/main/images/logo.svg)
 
 [![PyPi version](https://img.shields.io/pypi/v/tree-shade-mapper.svg)](https://pypi.python.org/pypi/tree-shade-mapper)
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1fUcqN6aSLGZnzzahIZiy_AkigFn5gY2e?usp=sharing)

@@ -8,8 +8,8 @@ from .image_process import segmentation_dir, resize_dir
 from .image_process import get_transmittance_center_of_modes_upper#, get_transmittance_seg, get_transmittance_bin
 from .image_process import get_sky_view_factor_from_binary
 
-from .solar_data_process import create_solar_time_series 
-from .solar_data_process import calc_solar_irradiance_under_tree_map
+from .solar_data_process import create_solar_time_series, create_solar_instantaneous 
+from .solar_data_process import calc_solar_irradiance_under_tree_map, calc_solar_irradiance_under_tree_spontaneous
 from .solar_data_process import interval_to_seconds
 from .visualization import mapping_accu, mapping_time_series, mapping_svf, create_video
 
@@ -191,6 +191,33 @@ def calc_solar_irradiance(base_dir, time_start, time_end, interval, time_zone, l
 
     df_solar_accu_path = f"{base_dir}/frames_solar_accu.csv"
     df_solar_accu.to_csv(df_solar_accu_path)
+
+def calc_solar_irradiance_instantaneous(base_dir, target_time, time_zone, latitude, longitude, ghi, azimuth_offset=180):
+
+    model="tcm"
+
+    df_svf_path = f"{base_dir}/svf.csv"
+    df_svf = pd.read_csv(df_svf_path)
+
+    df_solar = create_solar_instantaneous(target_time, time_zone, latitude, longitude, ghi, altitude=0, rad_model='erbs_driesse')
+
+    ghi_utc_list = []
+    transmittance_list = []
+    for index, row in df_svf.iterrows():
+        tra_dir = f"{base_dir}/transmittance_{model}"
+        tra_path = os.path.join(tra_dir, row["frame_key"]+"_tra.npy")    
+        array_transmittance = np.load(tra_path)
+        ghi_utc, transmittance = calc_solar_irradiance_under_tree_spontaneous(df_solar, array_transmittance, row[f"svf_{model}"], azimuth_offset = azimuth_offset, model = model)
+        ghi_utc_list.append(ghi_utc)
+        transmittance_list.append(transmittance)
+
+    df_svf[f"ghi_utc_{model}"] = ghi_utc_list
+    df_svf[f"transmittance_{model}"] = transmittance_list
+    df_svf["zenith"] = df_solar["zenith"].iloc[0]
+    df_svf["dni"] = df_solar["dni"].iloc[0]
+    df_svf["dhi"] = df_solar["dhi"].iloc[0]
+
+    return df_svf
 
 def get_tree_shade(base_dir, time_start, time_end, interval, time_zone, latitude, longitude, models=['tcm'], calc_type=None, vmin=0, vmax=1000, resolution=14):
     calc_transmittance(base_dir, models=models, calc_type=calc_type)

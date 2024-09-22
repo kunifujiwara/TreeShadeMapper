@@ -84,6 +84,35 @@ def create_solar_time_series(time_start, time_end, time_zone, interval, latitude
 
     return df_solar
 
+def create_solar_position_instantaneous(target_time, time_zone, latitude, longitude, altitude=0):
+
+    # Generate the datetime range
+    time_range = pd.date_range(start=target_time, end=target_time, freq="5min", tz=time_zone)
+
+    # Create the DataFrame
+    df_time = pd.DataFrame(time_range, columns=['time'])
+
+    # Set the 'time' column as the index to create a DateTimeIndex
+    df_time.set_index('time', inplace=True)
+
+    solar_position = solarposition.get_solarposition(df_time.index, latitude, longitude, altitude)
+    df_solar_position = pd.concat([df_time, solar_position], axis=1)
+
+    return df_solar_position
+
+def create_solar_instantaneous(target_time, time_zone, latitude, longitude, ghi, altitude=0, rad_model='erbs_driesse'):
+    df_solar = create_solar_position_instantaneous(target_time, time_zone, latitude, longitude, altitude=0)
+    df_solar["ghi"] = ghi
+
+    if rad_model == 'erbs':
+        erbs = pvlib.irradiance.erbs(df_solar[f"ghi"], df_solar["zenith"], df_solar.index)
+    elif rad_model == 'erbs_driesse':
+        erbs = pvlib.irradiance.erbs_driesse(df_solar[f"ghi"], df_solar["zenith"], df_solar.index)
+    df_solar[f'dni'] = erbs["dni"]
+    df_solar[f'dhi'] = erbs["dhi"]
+
+    return df_solar
+
 def create_solar_time_series_walk(df_walk, time_start, interval, time_zone):
 
     steps = len(df_walk)
@@ -124,12 +153,12 @@ def create_solar_time_series_walk(df_walk, time_start, interval, time_zone):
     return df_solar_walk
 
 
-def add_erbs_direct_diffuse(df):
-    erbs = pvlib.irradiance.erbs(df['solar_radiation_rt'], df["zenith"], df.index)
-    df['direct_normal_erbs'] = erbs["dni"]
-    df['sky_diffuse_erbs'] = erbs["dhi"]        
-    df['sky_diffuse_erbs'] = df.apply(modify_sky_diffuse_erbs, axis=1)
-    df['direct_normal_erbs'] = df.apply(modify_direct_normal_erbs, axis=1)
+# def add_erbs_direct_diffuse(df):
+#     erbs = pvlib.irradiance.erbs(df['solar_radiation_rt'], df["zenith"], df.index)
+#     df['direct_normal_erbs'] = erbs["dni"]
+#     df['sky_diffuse_erbs'] = erbs["dhi"]        
+#     df['sky_diffuse_erbs'] = df.apply(modify_sky_diffuse_erbs, axis=1)
+#     df['direct_normal_erbs'] = df.apply(modify_direct_normal_erbs, axis=1)
 
 def add_erbs_direct_diffuse(df, roofs):
     erbs = pvlib.irradiance.erbs(df['solar_radiation_rt'], df["zenith"], df.index)
@@ -198,7 +227,7 @@ def calc_solar_irradiance_under_tree_map(df_solar, array_transmittance, sky_view
           trans_index_azimuth = int(round(trans_w * azimuth / 360, 0))-1
           trans_index_zenith = int(round(trans_h / 2 * zenith / 90, 0))-1
           pixel_transmittance = array_transmittance[trans_index_zenith][trans_index_azimuth]
-          direct_irradiance = df_solar["dni"][j] * np.cos((df_solar["apparent_zenith"][j])/360*np.pi) * pixel_transmittance
+          direct_irradiance = df_solar["dni"][j] * np.cos((df_solar["apparent_zenith"][j])/180*np.pi) * pixel_transmittance
 
         else:
           direct_irradiance = 0
@@ -213,6 +242,29 @@ def calc_solar_irradiance_under_tree_map(df_solar, array_transmittance, sky_view
 
     df_solar[f"ghi_utc_{model}"] = irradiances
     df_solar[f"transmittance_{model}"] = transmittance_list
+
+def calc_solar_irradiance_under_tree_spontaneous(df_solar, array_transmittance, sky_view_factor, azimuth_offset = 180, model = "tcm"):
+    trans_w = len(array_transmittance[0])
+    trans_h = len(array_transmittance)
+   
+    azimuth = (df_solar["azimuth"]+azimuth_offset)%360#degree
+    zenith = df_solar["apparent_zenith"].iloc[0]#degree
+
+    if zenith < 90:
+        trans_index_azimuth = int(round(trans_w * azimuth / 360, 0))-1
+        trans_index_zenith = int(round(trans_h / 2 * zenith / 90, 0))-1
+        pixel_transmittance = array_transmittance[trans_index_zenith][trans_index_azimuth]
+        direct_irradiance = df_solar["dni"].iloc[0] * np.cos((df_solar["apparent_zenith"].iloc[0])/180*np.pi) * pixel_transmittance
+
+    else:
+        direct_irradiance = 0
+        pixel_transmittance = 0
+
+    #diffuse_irradiance = df_concat["dhi"][j] * df_concat["sky_uppr_ortho"][j]
+    diffuse_irradiance = df_solar["dhi"].iloc[0] * sky_view_factor
+    irradiance = direct_irradiance + diffuse_irradiance
+    #print(time, azimuth, zenith, direct_irradiance)
+    return irradiance, pixel_transmittance
 
 def calc_solar_irradiance_under_tree_validation(df_solar, location, nearest_roof, array_transmittance, sky_view_factor, azimuth_offset = 180, model = "tcm", radmodel = 'erbs'):
     trans_w = len(array_transmittance[0])
@@ -232,7 +284,7 @@ def calc_solar_irradiance_under_tree_validation(df_solar, location, nearest_roof
                 trans_index_azimuth = int(round(trans_w * azimuth / 360, 0))-1
                 trans_index_zenith = int(round(trans_h / 2 * zenith / 90, 0))-1
                 pixel_transmittance = array_transmittance[trans_index_zenith][trans_index_azimuth]
-                direct_irradiance = df_solar[f"DNI_rt_{radmodel}_{nearest_roof}"][j] * np.cos((df_solar["zenith"][j])/360*np.pi) * pixel_transmittance
+                direct_irradiance = df_solar[f"DNI_rt_{radmodel}_{nearest_roof}"][j] * np.cos((df_solar["zenith"][j])/180*np.pi) * pixel_transmittance
 
             else:
                 direct_irradiance = 0

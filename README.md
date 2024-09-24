@@ -47,7 +47,7 @@ You need to create a dataset with panoramic imagery and a csv file. Please refer
 ```python
 from tree_shade_mapper import get_tree_shade
 
-base_dir = '/content/extracted_data/data'
+base_dir = '/path/to/your/input/data'
 calc_type = 'map'
 
 # Define start and end time, and the interval

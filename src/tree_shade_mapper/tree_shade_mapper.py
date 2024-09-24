@@ -4,8 +4,11 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 
+from multiprocessing import Pool, cpu_count
+from functools import partial
+
 from .image_process import segmentation_dir, resize_dir
-from .image_process import get_transmittance_center_of_modes_upper#, get_transmittance_seg, get_transmittance_bin
+from .image_process import get_transmittance_center_of_modes_upper_v2#, get_transmittance_seg, get_transmittance_bin
 from .image_process import get_sky_view_factor_from_binary
 
 from .solar_data_process import create_solar_time_series, create_solar_instantaneous 
@@ -13,17 +16,18 @@ from .solar_data_process import calc_solar_irradiance_under_tree_map, calc_solar
 from .solar_data_process import interval_to_seconds
 from .visualization import mapping_accu, mapping_time_series, mapping_svf, create_video
 
-kernel_size = 40
 binary_type = "brightness"
 
-def calc_transmittance(base_dir, models=["tcm"], calc_type = None):
+def calc_transmittance(base_dir, models=["tcm"], image_size = (2048, 1024), calc_type = None):
+
+    kernel_size = int(image_size[0]/64)
 
     #segmentation
     ori_dir = f"{base_dir}/original"
     res_dir = f"{base_dir}/resized"
     if not os.path.exists(res_dir):
         os.makedirs(res_dir)
-    resize_dir(ori_dir, res_dir, new_size = (2048, 1024))
+    resize_dir(ori_dir, res_dir, new_size = image_size)
     seg_dir = f"{base_dir}/segmented"
     segmentation_dir(res_dir, seg_dir)
 
@@ -54,7 +58,7 @@ def calc_transmittance(base_dir, models=["tcm"], calc_type = None):
                     array_binary = np.load(bin_path)
                     array_transmittance = np.load(tra_path)
                 else:
-                    array_transmittance, array_binary = get_transmittance_center_of_modes_upper(ori_path, seg_path, kernel_size, binary_type = binary_type, model = model, type = 'q2')
+                    array_transmittance, array_binary = get_transmittance_center_of_modes_upper_v2(ori_path, seg_path, kernel_size, binary_type = binary_type, model = model, type = 'q2')
                     np.save(bin_path, array_binary)
                     np.save(tra_path, array_transmittance)
                 # magma_array_transmittance = mcm.magma(array_transmittance, bytes=True)
@@ -98,7 +102,7 @@ def calc_transmittance(base_dir, models=["tcm"], calc_type = None):
 
             svf_list = []
             for index, row in df_frames.iterrows():
-                ori_path = os.path.join(ori_dir, row["frame_key"]+".jpg")
+                ori_path = os.path.join(res_dir, row["frame_key"]+".jpg")
                 seg_path = os.path.join(seg_dir, row["frame_key"]+"_colored_segmented.png")
                 tra_path = os.path.join(tra_dir, row["frame_key"]+"_tra.npy")
                 bin_path = os.path.join(bin_dir, row["frame_key"]+"_bin.npy")
@@ -110,7 +114,7 @@ def calc_transmittance(base_dir, models=["tcm"], calc_type = None):
                     array_binary = np.load(bin_path)
                     array_transmittance = np.load(tra_path)
                 else:
-                    array_transmittance, array_binary = array_transmittance, array_binary = get_transmittance_center_of_modes_upper(ori_path, seg_path, kernel_size, binary_type = binary_type, model = model, type = "q2")
+                    array_transmittance, array_binary = array_transmittance, array_binary = get_transmittance_center_of_modes_upper_v2(ori_path, seg_path, kernel_size, binary_type = binary_type, model = model, type = "q2")
                     np.save(tra_path, array_transmittance)
                     np.save(bin_path, array_binary)
 
@@ -212,15 +216,15 @@ def calc_solar_irradiance_instantaneous(base_dir, target_time, time_zone, latitu
         transmittance_list.append(transmittance)
 
     df_svf[f"ghi_utc_{model}"] = ghi_utc_list
-    df_svf[f"transmittance_{model}"] = transmittance_list
-    df_svf["zenith"] = df_solar["zenith"].iloc[0]
-    df_svf["dni"] = df_solar["dni"].iloc[0]
-    df_svf["dhi"] = df_solar["dhi"].iloc[0]
+    # df_svf[f"transmittance_{model}"] = transmittance_list
+    # df_svf["zenith"] = df_solar["zenith"].iloc[0]
+    # df_svf["dni"] = df_solar["dni"].iloc[0]
+    # df_svf["dhi"] = df_solar["dhi"].iloc[0]
 
     return df_svf
 
-def get_tree_shade(base_dir, time_start, time_end, interval, time_zone, latitude, longitude, models=['tcm'], calc_type=None, vmin=0, vmax=1000, resolution=14):
-    calc_transmittance(base_dir, models=models, calc_type=calc_type)
+def get_tree_shade(base_dir, time_start, time_end, interval, time_zone, latitude, longitude, models=['tcm'], image_size = (2048, 1024), calc_type=None, vmin=0, vmax=1000, resolution=14):
+    calc_transmittance(base_dir, models=models, image_size = image_size, calc_type=calc_type)
     calc_solar_irradiance(base_dir, time_start, time_end, interval, time_zone, latitude, longitude, models=models)
 
     if calc_type == 'map':

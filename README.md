@@ -47,25 +47,40 @@ You need to create a dataset with panoramic imagery and a csv file. Please refer
 ```python
 from tree_shade_mapper import get_tree_shade
 
-base_dir = '/path/to/your/input/directory'
+base_dir = '/content/extracted_data/data'
 calc_type = 'map'
 
 # Define start and end time, and the interval
 time_start = '2024-01-01 07:00:00'
 time_end = '2024-01-01 20:00:00'
-interval = '5min'
+interval = '60min'
 
 # Define time zone and location
 time_zone = 'Asia/Singapore'
 latitude = 1.29751
 longitude = 103.77012
 
-# Define varibles for visualization
 vmin = 0
 vmax = 1200
 resolution = 14
 
-get_tree_shade(base_dir, time_start, time_end, interval, time_zone, latitude, longitude, calc_type=calc_type, vmin=vmin, vmax=vmax, resolution = resolution)
+#Image size (You need to adjust here checking the results)
+image_size = (512, 256)
+
+get_tree_shade(
+    base_dir,
+    time_start,
+    time_end,
+    interval,
+    time_zone,
+    latitude,
+    longitude,
+    image_size=image_size,
+    calc_type=calc_type,
+    vmin=vmin,
+    vmax=vmax,
+    resolution = resolution
+)
 ```
 
 ## License

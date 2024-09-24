@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import math
 import os
 import cv2
+from scipy.ndimage import uniform_filter
+from scipy import stats
 
 def segmentation_dir(input_path, ouput_path):
     segmenter  = Segmenter()    
@@ -504,97 +506,133 @@ def get_transmittance_center_of_modes_upper(img_path, seg_path, kernel_size, bin
         array_seg_binary = np.where(array_seg_binary == 0, 0, 1)
         
         return array_transmission, array_seg_binary
-# def get_transmittance_seg(img_path, seg_path):
-#     img = Image.open(img_path)
-#     # Convert to grayscale
-#     gray_img = img.convert('L')
-#     # Convert the image to a numpy array
-#     array_2d = np.array(gray_img)
-#     # Create a new array of zeros with the same shape as array_binary for storing shaded image
-#     array_transmission = np.zeros_like(array_2d, dtype=float)
-#     array_seg_binary = np.zeros_like(array_2d, dtype=float)
 
-#     img_arr = image_to_2d_array(seg_path)
-#     sky_indices = img_arr[:, :] == 4620980
-#     veg_indices = img_arr[:, :] == 7048739
-#     img_arr[:, :] = 0
-#     img_arr[sky_indices] = 2
-#     img_arr[veg_indices] = 1
+def get_transmittance_center_of_modes_upper_v2(img_path, seg_path, kernel_size, binary_type="brightness", model="tcm", type="q2"):
+    if model == "tcm":
+        img = Image.open(img_path)
+        # Split the image into R, G, B components and convert to float numpy arrays
+        r, g, b = [np.array(channel, dtype=float) for channel in img.split()]
 
-#     # Iterate over the image, and calculate average value in kernel_size x kernel_size neighborhood
-#     for i in range(array_2d.shape[0]):
-#         for j in range(array_2d.shape[1]):
-#             if img_arr[i, j] == 1:
-#                 array_transmission[i, j] = 0
-#                 array_seg_binary[i, j] = 0
-#             elif img_arr[i, j] == 2:
-#                 array_transmission[i, j] = 1
-#                 array_seg_binary[i, j] = 1
-#             else:
-#                 array_transmission[i, j] = 0
-#                 array_seg_binary[i, j] = 0
-    
-#     # Convert 1 to black and 0 to white
-#     array_seg_binary = np.where(array_seg_binary == 0, 0, 1)
-    
-#     return array_transmission, array_seg_binary
+        # Calculate 'b' value for each pixel based on binary_type
+        if binary_type == "rgb":
+            b_value = (r + g + b) / 3
+        elif binary_type == "brightness":
+            b_value = (0.5 * r + g + 1.5 * b) / 3
+        elif binary_type == "2bg":
+            b_value = 2 * b - g
+        elif binary_type == "gla":
+            gla = (2 * g - r - b) / (2 * g + r + b + 1e-10)
+            b_value = (1 - (gla + 1) / 2.0) * 255
 
-# def get_transmittance_bin(img_path, kernel_size, border, binary_type = "rgb"):
-#     img = Image.open(img_path)
-#     # Split the image into R, G, B components
-#     r, g, b = img.split()
-#     # Convert R, G, B components to float numpy arrays
-#     r = np.array(r, dtype=float)
-#     g = np.array(g, dtype=float)
-#     b = np.array(b, dtype=float)
+        img_arr = image_to_2d_array(seg_path)
+        height = img_arr.shape[0]
+        half_height = height // 2
 
-#     if binary_type == "rgb":
-#         # Calculate 'b' value for each pixel
-#         b_value = (r + g + b) / 3
-#     elif binary_type == "brightness":
-#         # Calculate 'b' value for each pixel
-#         b_value = (0.5 * r + g + 1.5 * b) / 3
-#     elif binary_type == "2bg":
-#         # Calculate 'b' value for each pixel
-#         b_value = 2 * b - g    
-#     elif binary_type == "gla":
-#         # Calculate 'b' value for each pixel
-#         gla = (2 * g - r - b) / (2 * g + r + b + 1e-10)   
-#         b_value = (1 - (gla + 1) / 2.0) * 255
+        # Adjust indices to only consider the upper half of the image
+        upper_half = img_arr[:half_height, :]
 
-#     # Binarize based on the threshold
-#     binarized = b_value > border
-#     # Convert the binarized array back to a PIL image and convert to mode '1' for 1-bit pixels
-#     img_binary = Image.fromarray(binarized).convert('1')
+        # Update indices for sky and vegetation in the upper half
+        sky_indices = upper_half == 4620980
+        veg_indices = upper_half == 7048739
 
-#     # Create binary 2d array
-#     array_binary = np.array(img_binary)
-#     # Convert binary image array into 1's (color) and 0's (white)
-#     array_binary = np.where(array_binary == True, 1, 0)
-#     # Create a new array of zeros with the same shape as array_binary for storing shaded image
-#     array_transmission = np.zeros_like(array_binary, dtype=float)
-#     array_seg_binary = np.zeros_like(array_binary, dtype=float)
+        # Calculate 'b' values for vegetation and sky in the upper half
+        veg_b_value = b_value[:half_height, :][veg_indices]
+        sky_b_value = b_value[:half_height, :][sky_indices]
 
-#     # Iterate over the image, and calculate average value in kernel_size x kernel_size neighborhood
-#     for i in range(array_binary.shape[0]):
-#         for j in range(array_binary.shape[1]):
-#             # Define boundaries for the neighborhood
-#             i_min = max(0, i - kernel_size // 2)
-#             i_max = min(array_binary.shape[0], i + kernel_size // 2 + 1)
-#             j_min = max(0, j - kernel_size // 2)
-#             j_max = min(array_binary.shape[1], j + kernel_size // 2 + 1)
+        bin_width = 10
+        bins = np.arange(-200, 340 + bin_width, bin_width)
+        bins_veg = np.arange(-200, 100 + bin_width, bin_width)
 
-#             # Extract the neighborhood
-#             neighborhood = array_binary[i_min:i_max, j_min:j_max]
-#             # Compute the mean of the neighborhood
-#             array_transmission[i, j] = neighborhood.mean()
+        # Compute histograms and find the peak values
+        veg_hist, veg_bin_edges = np.histogram(veg_b_value, bins=bins_veg)
+        veg_peak_bin = np.argmax(veg_hist)
+        veg_peak_value = veg_bin_edges[veg_peak_bin] + bin_width / 2
 
-#             array_seg_binary[i, j] = array_binary[i, j]
-    
-#     # Convert 1 to black and 0 to white
-#     array_seg_binary = np.where(array_seg_binary == 0, 0, 1)
-    
-#     return array_transmission, array_seg_binary
+        sky_hist, sky_bin_edges = np.histogram(sky_b_value, bins=bins)
+        sky_peak_bin = np.argmax(sky_hist)
+        sky_peak_value = sky_bin_edges[sky_peak_bin] + bin_width / 2
+
+        gap = sky_peak_value - veg_peak_value
+        if type == "q1":
+            border = veg_peak_value + 0.25 * gap
+        elif type == "q2":
+            border = veg_peak_value + 0.5 * gap
+        elif type == "q3":
+            border = veg_peak_value + 0.75 * gap
+
+        # Binarize based on the threshold
+        binarized = b_value > border
+        array_binary = binarized.astype(np.uint8)
+
+        # Create arrays for transmission and segmentation binary
+        array_transmission = np.zeros_like(array_binary, dtype=float)
+        array_seg_binary = np.zeros_like(array_binary, dtype=float)
+
+        # Reload img_arr and update indices for the full image
+        img_arr = image_to_2d_array(seg_path)
+        sky_indices_full = img_arr == 4620980
+        veg_indices_full = img_arr == 7048739
+
+        # Map sky and vegetation indices to 2 and 1, respectively
+        img_arr[sky_indices_full] = 2
+        img_arr[veg_indices_full] = 1
+        img_arr[~(sky_indices_full | veg_indices_full)] = 0
+
+        # Restrict indices to the upper half
+        sky_indices_full[half_height:, :] = False
+        veg_indices_full[half_height:, :] = False
+
+        # Compute the mean over the neighborhood using uniform_filter
+        mean_array = uniform_filter(array_binary.astype(float), size=kernel_size)
+
+        # Update array_transmission and array_seg_binary using vectorized operations
+        array_transmission[veg_indices_full] = mean_array[veg_indices_full]
+        array_transmission[sky_indices_full] = 1
+        array_transmission[~(veg_indices_full | sky_indices_full)] = 0
+
+        array_seg_binary[veg_indices_full] = array_binary[veg_indices_full]
+        array_seg_binary[sky_indices_full] = 1
+        array_seg_binary[~(veg_indices_full | sky_indices_full)] = 0
+
+        # Set the lower half of array_seg_binary to 0
+        array_seg_binary[half_height:, :] = 0
+
+        # Ensure array_seg_binary contains only 0's and 1's
+        array_seg_binary = (array_seg_binary > 0).astype(np.uint8)
+
+        return array_transmission, array_seg_binary
+
+    elif model == "scm":
+        img = Image.open(img_path)
+        # Convert to grayscale
+        array_2d = np.array(img.convert('L'))
+
+        # Create arrays for transmission and segmentation binary
+        array_transmission = np.zeros_like(array_2d, dtype=float)
+        array_seg_binary = np.zeros_like(array_2d, dtype=float)
+
+        img_arr = image_to_2d_array(seg_path)
+        sky_indices = img_arr == 4620980
+        veg_indices = img_arr == 7048739
+
+        # Map sky and vegetation indices to 2 and 1, respectively
+        img_arr[sky_indices] = 2
+        img_arr[veg_indices] = 1
+        img_arr[~(sky_indices | veg_indices)] = 0
+
+        # Update array_transmission and array_seg_binary using vectorized operations
+        array_transmission[veg_indices] = 0
+        array_transmission[sky_indices] = 1
+        array_transmission[~(veg_indices | sky_indices)] = 0
+
+        array_seg_binary[veg_indices] = 0
+        array_seg_binary[sky_indices] = 1
+        array_seg_binary[~(veg_indices | sky_indices)] = 0
+
+        # Ensure array_seg_binary contains only 0's and 1's
+        array_seg_binary = (array_seg_binary > 0).astype(np.uint8)
+
+        return array_transmission, array_seg_binary
 
 def orthographic_fisheye(img):
     rows, cols, c = img.shape
@@ -638,7 +676,8 @@ def orthographic_fisheye_binary(img):
     theta = np.arctan2(y - cy, x - cx)
 
     xp = np.floor((theta + np.pi) * cols / (2 * np.pi)).astype(int)
-    yp = np.floor((2 / np.pi) * np.arcsin(r / R) * rows).astype(int)
+    # yp = np.floor((2 / np.pi) * np.arcsin(r / R) * rows).astype(int)
+    yp = np.floor((2 / np.pi) * np.arcsin(np.clip(r / R, -1, 1)) * rows).astype(int)
     
     mask = r < R
 

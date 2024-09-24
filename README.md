@@ -15,7 +15,7 @@ Repository for the script used for estimating and mapping the shading effect of 
 
 You can read more about this project on [its website](https://ual.sg/publication/***/) too.
 
-The journal paper can be found [here](https://doi.org/***). 
+The journal paper can be found [here](https://doi.org/10.1016/j.buildenv.2024.112071). 
 
 The method integrates semantic segmentation and binariation to calculate transmittace of tree canopies and estimates the sky view factor and solar irradiance using the calculated transmittance.
 

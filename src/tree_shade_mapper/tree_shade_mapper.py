@@ -32,7 +32,13 @@ def calc_transmittance(base_dir, models=["tcm"], image_size = (2048, 1024), calc
     segmentation_dir(res_dir, seg_dir)
 
     if calc_type == None:
-        locations = [pano.replace(".jpg", "") for pano in os.listdir(res_dir)]
+        # Get all image files with various extensions
+        image_extensions = ['.jpg', '.jpeg', '.png', '.JPG', '.JPEG', '.PNG']
+        locations = []
+        for file in os.listdir(res_dir):
+            file_name, file_ext = os.path.splitext(file)
+            if file_ext.lower() in [ext.lower() for ext in image_extensions]:
+                locations.append(file_name)
 
         df_svf_list = []
         for model in models:
@@ -46,7 +52,18 @@ def calc_transmittance(base_dir, models=["tcm"], image_size = (2048, 1024), calc
 
             svf_list = []
             for location in locations:
-                ori_path = os.path.join(res_dir, location+".jpg")
+                # Find the original file with its extension
+                ori_file = None
+                for ext in image_extensions:
+                    potential_file = location + ext
+                    if os.path.exists(os.path.join(res_dir, potential_file)):
+                        ori_file = potential_file
+                        break
+                
+                if ori_file is None:
+                    continue  # Skip if no matching file found
+                
+                ori_path = os.path.join(res_dir, ori_file)
                 seg_path = os.path.join(seg_dir, location+"_colored_segmented.png")
                 tra_path = os.path.join(tra_dir, location+"_tra.npy")
                 bin_path = os.path.join(bin_dir, location+"_bin.npy")

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tree_shade_mapper"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python package to calculate the shading effect of tree canopies from panoramic imagery"
 readme = "README.rst"
 authors = [
@@ -18,7 +18,7 @@ classifiers = [
 ]
 license = {text = "CC-BY-SA-4.0"}
 dependencies = [
-    "zensvi==0.11.0",
+    "zensvi",
     "typer",
     "pandas",
     "pvlib",

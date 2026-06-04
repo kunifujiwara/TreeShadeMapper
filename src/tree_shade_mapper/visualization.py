@@ -31,6 +31,18 @@ from .image_process import get_transmittance_center_of_modes, get_transmittance_
 from .image_process import get_sky_view_factor_from_binary
 
 
+def _geo_to_h3(lat, lon, resolution):
+    if hasattr(h3, "geo_to_h3"):
+        return h3.geo_to_h3(lat, lon, resolution)
+    return h3.latlng_to_cell(lat, lon, resolution)
+
+
+def _h3_to_geo_boundary(hex_id):
+    if hasattr(h3, "h3_to_geo_boundary"):
+        return h3.h3_to_geo_boundary(h=hex_id, geo_json=True)
+    return [(lon, lat) for lat, lon in h3.cell_to_boundary(hex_id)]
+
+
 def display_sun_trajectory(frame_path, df_sunposi, azimuth_offset=0, mode = "point"):
     img = Image.open(frame_path)
     img = img.resize((2048, 1024))
@@ -438,7 +450,7 @@ def hexagons_dataframe_to_geojson(df_hex, file_output = None, column_name = "val
     
     for i, row in df_hex.iterrows():
         try:
-            geometry_for_row = { "type" : "Polygon", "coordinates": [h3.h3_to_geo_boundary(h=row["hex_id"],geo_json=True)]}
+            geometry_for_row = { "type" : "Polygon", "coordinates": [_h3_to_geo_boundary(row["hex_id"])]}
             feature = Feature(geometry = geometry_for_row , id=row["hex_id"], properties = {column_name : row[column_name]})
             list_features.append(feature)
         except:
@@ -550,6 +562,7 @@ def save_choropleth_svg(df_aggreg, df_original, value_name, vmin, vmax, fill_opa
 
     #plt.savefig(user_colored_svg_file, format='svg', transparent=True, bbox_inches='tight')
     plt.savefig(user_colored_svg_file, format='svg')
+    plt.close()
 
     # color_map_name 'Blues' for now, many more at https://matplotlib.org/stable/tutorials/colors/colormaps.html to choose from!
     #colormap = matplotlib.cm.get_cmap(cmap)
@@ -623,8 +636,7 @@ def save_choropleth_with_basemap(df_aggreg, df_original, value_name, vmin, vmax,
     # Save the plot as a PNG file
     user_colored_png_file = f"{save_dir}/{value_name}_map.png"
     plt.savefig(user_colored_png_file, format='png', bbox_inches='tight', dpi=300)
-    plt.show()
-    # plt.close(fig)
+    plt.close(fig)
 
 def save_choropleth_with_basemap_time(df_aggreg, datetime, value_name, vmin, vmax, fill_opacity=0.7, cmap=None, initial_map=None, save_dir=None, save_name = None, basemap = None):
     """
@@ -702,11 +714,10 @@ def save_choropleth_with_basemap_time(df_aggreg, datetime, value_name, vmin, vma
 
     plt.savefig(user_colored_png_file, format='png', bbox_inches='tight')
 
-    plt.show()
-    # plt.close(fig)
+    plt.close(fig)
 
 def mapping_h3_grid(df_map, value_name, vmin, vmax, resolution = None, cmap = None, save_dir = None, fill_opacity = None):
-    hex_ids = df_map.apply(lambda row: h3.geo_to_h3(row.lat, row.lon, resolution), axis = 1)
+    hex_ids = df_map.apply(lambda row: _geo_to_h3(row.lat, row.lon, resolution), axis = 1)
     df_map = df_map.assign(hex_id=hex_ids.values)
     df_h3 = df_map.groupby("hex_id", as_index=False).agg({value_name: "mean"})
     # save_choropleth_svg(df_h3, df_map, value_name, vmin, vmax, fill_opacity = fill_opacity, cmap = cmap, initial_map = None, save_dir = save_dir)
@@ -724,7 +735,7 @@ def mapping_h3_grid_timeseries(df_map, value_name, vmin, vmax, resolution = None
         formatted_date_str = time.strftime('%Y-%m-%d-%H-%M')
 
         df_map_filtered = df_map[df_map['time'] == time]
-        hex_ids = df_map_filtered.apply(lambda row: h3.geo_to_h3(row.lat, row.lon, resolution), axis = 1)
+        hex_ids = df_map_filtered.apply(lambda row: _geo_to_h3(row.lat, row.lon, resolution), axis = 1)
         df_map_filtered = df_map_filtered.assign(hex_id=hex_ids.values)
         df_h3 = df_map_filtered.groupby("hex_id", as_index=False).agg({value_name: "mean"})
 
@@ -741,7 +752,7 @@ def mapping_h3_grid_timeseries_normalized(df_map, value_name, resolution = None,
         formatted_date_str = time.strftime('%Y-%m-%d-%H')
 
         df_map_filtered = df_map[df_map['time'] == time]
-        hex_ids = df_map_filtered.apply(lambda row: h3.geo_to_h3(row.lat, row.lon, resolution), axis = 1)
+        hex_ids = df_map_filtered.apply(lambda row: _geo_to_h3(row.lat, row.lon, resolution), axis = 1)
         df_map_filtered = df_map_filtered.assign(hex_id=hex_ids.values)
         df_h3 = df_map_filtered.groupby("hex_id", as_index=False).agg({value_name: "mean"})
 
@@ -870,6 +881,7 @@ def hexbin_plot_prediction(df, ground_truth, prediction, xlabel='x', ylabel='y',
     
     svg_file_path = os.path.join("figure", f"prediction_hexbin_{tag}.svg")
     plt.savefig(svg_file_path)
+    plt.close(fig)
 
 # def save_point_map_with_basemap(df_points, value_name, vmin, vmax, cmap='viridis', initial_map=None, save_dir=None):
 #     """
@@ -957,7 +969,7 @@ def save_point_map_with_basemap(df_points, value_name, vmin, vmax, cmap='viridis
         user_colored_png_file = f"{save_dir}/{value_name}_{tag}_map.png"
         plt.savefig(user_colored_png_file, format='png', bbox_inches='tight', dpi=1000)
 
-    plt.show()
+    plt.close(fig)
 
 def save_point_map_with_basemap_no_value(df_points, marker_size = 15, fill_color = 'k', fill_opacity=0.7, save_dir=None, expand_area_ratio_x = 0.1, expand_area_ratio_y = 0.1, tag=''):
     """
@@ -997,7 +1009,7 @@ def save_point_map_with_basemap_no_value(df_points, marker_size = 15, fill_color
         user_colored_png_file = f"{save_dir}/points_{tag}_map.png"
         plt.savefig(user_colored_png_file, format='png', bbox_inches='tight')
 
-    plt.show()
+    plt.close(fig)
 
 def create_video(base_dir, frame_dir):
     # Set the path to the directory containing the images

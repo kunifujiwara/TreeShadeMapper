@@ -188,21 +188,21 @@ def calc_solar_irradiance_under_tree(df_solar, array_transmittance, sky_view_fac
 
     for j in range(len(df_solar)):
     #for j in range(30,40):
-        azimuth = (df_solar["azimuth"][j]+azimuth_offset)%360#degree
-        zenith = df_solar["apparent_zenith"][j]#degree
+        azimuth = (df_solar["azimuth"].iloc[j]+azimuth_offset)%360#degree
+        zenith = df_solar["apparent_zenith"].iloc[j]#degree
 
         if zenith < 90:
           trans_index_azimuth = int(round(trans_w * azimuth / 360, 0))-1
           trans_index_zenith = int(round(trans_h / 2 * zenith / 90, 0))-1
           pixel_transmittance = array_transmittance[trans_index_zenith][trans_index_azimuth]
-          direct_irradiance = df_solar["direct_normal_erbs"][j] * np.cos((df_solar["apparent_zenith"][j])/360*np.pi) * pixel_transmittance
+          direct_irradiance = df_solar["direct_normal_erbs"].iloc[j] * np.cos((df_solar["apparent_zenith"].iloc[j])/360*np.pi) * pixel_transmittance
 
         else:
           direct_irradiance = 0
           pixel_transmittance = 0
 
         #diffuse_irradiance = df_concat["dhi"][j] * df_concat["sky_uppr_ortho"][j]
-        diffuse_irradiance = df_solar["sky_diffuse_erbs"][j] * sky_view_factor
+        diffuse_irradiance = df_solar["sky_diffuse_erbs"].iloc[j] * sky_view_factor
         irradiance = direct_irradiance + diffuse_irradiance
         #print(time, azimuth, zenith, direct_irradiance)
         irradiances.append(irradiance)
@@ -220,21 +220,21 @@ def calc_solar_irradiance_under_tree_map(df_solar, array_transmittance, sky_view
 
     for j in range(len(df_solar)):
     #for j in range(30,40):
-        azimuth = (df_solar["azimuth"][j]+azimuth_offset)%360#degree
-        zenith = df_solar["apparent_zenith"][j]#degree
+        azimuth = (df_solar["azimuth"].iloc[j]+azimuth_offset)%360#degree
+        zenith = df_solar["apparent_zenith"].iloc[j]#degree
 
         if zenith < 90:
           trans_index_azimuth = int(round(trans_w * azimuth / 360, 0))-1
           trans_index_zenith = int(round(trans_h / 2 * zenith / 90, 0))-1
           pixel_transmittance = array_transmittance[trans_index_zenith][trans_index_azimuth]
-          direct_irradiance = df_solar["dni"][j] * np.cos((df_solar["apparent_zenith"][j])/180*np.pi) * pixel_transmittance
+          direct_irradiance = df_solar["dni"].iloc[j] * np.cos((df_solar["apparent_zenith"].iloc[j])/180*np.pi) * pixel_transmittance
 
         else:
           direct_irradiance = 0
           pixel_transmittance = 0
 
         #diffuse_irradiance = df_concat["dhi"][j] * df_concat["sky_uppr_ortho"][j]
-        diffuse_irradiance = df_solar["dhi"][j] * sky_view_factor
+        diffuse_irradiance = df_solar["dhi"].iloc[j] * sky_view_factor
         irradiance = direct_irradiance + diffuse_irradiance
         #print(time, azimuth, zenith, direct_irradiance)
         irradiances.append(irradiance)
@@ -275,16 +275,16 @@ def calc_solar_irradiance_under_tree_validation(df_solar, location, nearest_roof
 
     for j in range(len(df_solar)):
     #for j in range(30,40):
-        if df_solar["zenith"][j] > 0:
+        if df_solar["zenith"].iloc[j] > 0:
 
-            azimuth = (df_solar["azimuth"][j]+azimuth_offset)%360#degree
-            zenith = df_solar["zenith"][j]#degree
+            azimuth = (df_solar["azimuth"].iloc[j]+azimuth_offset)%360#degree
+            zenith = df_solar["zenith"].iloc[j]#degree
 
             if zenith < 90:
                 trans_index_azimuth = int(round(trans_w * azimuth / 360, 0))-1
                 trans_index_zenith = int(round(trans_h / 2 * zenith / 90, 0))-1
                 pixel_transmittance = array_transmittance[trans_index_zenith][trans_index_azimuth]
-                direct_irradiance = df_solar[f"DNI_rt_{radmodel}_{nearest_roof}"][j] * np.cos((df_solar["zenith"][j])/180*np.pi) * pixel_transmittance
+                direct_irradiance = df_solar[f"DNI_rt_{radmodel}_{nearest_roof}"].iloc[j] * np.cos((df_solar["zenith"].iloc[j])/180*np.pi) * pixel_transmittance
 
             else:
                 direct_irradiance = 0
@@ -294,7 +294,7 @@ def calc_solar_irradiance_under_tree_validation(df_solar, location, nearest_roof
             pixel_transmittance = np.nan
 
         #diffuse_irradiance = df_concat["dhi"][j] * df_concat["sky_uppr_ortho"][j]
-        diffuse_irradiance = df_solar[f"SDI_rt_{radmodel}_{nearest_roof}"][j] * sky_view_factor
+        diffuse_irradiance = df_solar[f"SDI_rt_{radmodel}_{nearest_roof}"].iloc[j] * sky_view_factor
         irradiance = direct_irradiance + diffuse_irradiance
         #print(time, azimuth, zenith, direct_irradiance)
         irradiances.append(irradiance)

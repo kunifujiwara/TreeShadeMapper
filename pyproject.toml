@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tree_shade_mapper"
-version = "0.1.1"
+version = "0.1.3"
 description = "Python package to calculate the shading effect of tree canopies from panoramic imagery"
 readme = "README.rst"
 authors = [
@@ -48,9 +48,9 @@ dev = [
 
 [project.urls]
 
-bugs = "https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/issues"
-changelog = "https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}/blob/master/changelog.md"
-homepage = "https://github.com/{{ cookiecutter.github_username }}/{{ cookiecutter.project_slug }}"
+bugs = "https://github.com/kunifujiwara/TreeShadeMapper/issues"
+changelog = "https://github.com/kunifujiwara/TreeShadeMapper/blob/main/HISTORY.rst"
+homepage = "https://github.com/kunifujiwara/TreeShadeMapper"
 
 [tool.setuptools]
 package-dir = {"" = "src"}

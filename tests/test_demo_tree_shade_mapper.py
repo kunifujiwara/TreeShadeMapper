@@ -7,6 +7,7 @@ import zipfile
 from io import BytesIO
 from pathlib import Path
 
+import numpy as np
 import pytest
 import requests
 
@@ -82,3 +83,7 @@ def test_demo_tree_shade_mapper_end_to_end(tmp_path: Path) -> None:
     assert (base_dir / "frames_svf.csv").exists()
     assert (base_dir / "frames_solar.csv").exists()
     assert (base_dir / "frames_solar_accu.csv").exists()
+
+    binary_arrays = sorted((base_dir / "binary_tcm").glob("*_bin.npy"))
+    assert binary_arrays
+    assert any(np.load(binary_path).mean() > 0 for binary_path in binary_arrays)

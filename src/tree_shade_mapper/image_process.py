@@ -31,7 +31,7 @@ def resize_dir(input_dir, ouput_dir, new_size = (2048, 1024)):
             img.save(output_path)
 
 def rgb_to_int(rgb):
-    red, green, blue = rgb
+    red, green, blue = map(int, rgb)
     return (red<<16) + (green<<8) + blue
 
 def image_to_2d_array(image_path):
